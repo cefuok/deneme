@@ -25,7 +25,6 @@ import sys
 CANLI = "https://turktelekomkariyer.com.tr/assets/mailing/20260929/"
 
 ASSETS = (
-    "tt-arkaplan-desen.png",
     "mail-1-link.png",
     "mail-1-logo.png",
     "mail-2-logo.png",
