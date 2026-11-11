@@ -153,6 +153,27 @@ h3{font-size:16px;line-height:1.2}
 .lrow .lx b{display:block;font-weight:700;font-size:15px;line-height:1.25}
 .lrow .lx em{display:block;font-style:normal;font-size:12.5px;color:var(--ink3);margin-top:3px}
 .lrow .lv{flex:0 0 auto;font-family:var(--f-mono);font-size:11px;color:var(--ink3);text-align:right}
+/* ses */
+.act.mic{background:var(--surface2);color:var(--ink2)}
+.act.mic.on{background:var(--warn);color:#fff;animation:puls 1.3s ease-in-out infinite}
+@keyframes puls{0%,100%{box-shadow:0 0 0 0 rgba(168,84,30,.45)}50%{box-shadow:0 0 0 7px rgba(168,84,30,0)}}
+.box.hot{border-color:var(--warn)}
+.spkrow{display:flex;align-items:center;gap:7px;padding:0 4px}
+.spk{flex:0 0 auto;width:28px;height:28px;border-radius:8px;border:1px solid var(--line2);display:grid;place-items:center;
+  font-size:12px;color:var(--ink3);background:var(--surface)}
+.spk.on{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.vbar{flex:0 0 auto;background:var(--accent-soft);border-bottom:1px solid var(--line);
+  padding-left:var(--gut);padding-right:var(--gutr);padding-block:7px;
+  display:flex;align-items:center;gap:9px;font-size:13px;color:var(--accent);font-weight:600}
+.vbar button{margin-left:auto;flex:0 0 auto;font-size:12.5px;font-weight:700;padding:5px 11px;border-radius:999px;
+  border:1px solid var(--accent);color:var(--accent)}
+.vrow{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.vrow:last-child{border-bottom:0}
+.vrow .vt{flex:1 1 140px;min-width:0;font-size:14.5px}
+.sw{flex:0 0 auto;width:48px;height:28px;border-radius:999px;background:var(--line2);position:relative;transition:background .15s}
+.sw[aria-pressed="true"]{background:var(--ok)}
+.sw i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:999px;background:#fff;transition:left .15s}
+.sw[aria-pressed="true"] i{left:23px}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
 .pick{padding:7px 11px;border-radius:999px;border:1px solid var(--line2);font-size:13px;font-weight:600;color:var(--ink2)}
 .pick[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
@@ -173,9 +194,10 @@ h3{font-size:16px;line-height:1.2}
     <div class="scenebar" id="scenebar"></div>
     <div class="msgs" id="msgs"><div class="inner" id="msgsIn"></div></div>
     <div class="sugg" id="sugg" hidden><div class="in" id="suggIn"></div></div>
+    <div class="vbar" id="vbar" hidden><span id="vbarTxt">Claude konuşuyor...</span><button id="vstop">Durdur</button></div>
     <div class="composer"><div class="in">
-      <button class="act ghost" id="hintBtn" title="Ne diyebilirim?">?</button>
-      <textarea id="box" rows="1" placeholder="İngilizce yaz..." autocomplete="off" autocapitalize="sentences"></textarea>
+      <button class="act mic" id="micBtn" title="Konuş" hidden>●</button>
+      <textarea id="box" class="box" rows="1" placeholder="İngilizce yaz..." autocomplete="off" autocapitalize="sentences"></textarea>
       <button class="act" id="sendBtn" title="Gönder">↑</button>
     </div></div>
   </section>
@@ -226,10 +248,12 @@ var THEMEMAP={}; THEMES.forEach(function(t){THEMEMAP[t.id]=t;});
 
 /* ---------- durum ---------- */
 var LS="sroom.v1";
-var st={lvl:"A2",showTR:true,saved:[],stats:{convs:0,msgs:0,fixes:0},recent:[],log:{},updatedAt:0};
+var st={lvl:"A2",showTR:true,voice:{auto:true,rate:0.9,v:"buttery"},saved:[],stats:{convs:0,msgs:0,fixes:0},recent:[],log:{},updatedAt:0};
 try{var raw=localStorage.getItem(LS); if(raw){var o=JSON.parse(raw);
   st.lvl=o.lvl||"A2"; st.showTR=o.showTR!==false; st.saved=arr(o.saved); st.stats=o.stats||st.stats;
-  st.recent=arr(o.recent); st.log=o.log||{}; st.updatedAt=o.updatedAt||0;}}catch(e){}
+  st.recent=arr(o.recent); st.log=o.log||{}; st.updatedAt=o.updatedAt||0;
+  if(o.voice&&typeof o.voice==="object"){ st.voice.auto=o.voice.auto!==false;
+    if(typeof o.voice.rate==="number") st.voice.rate=o.voice.rate; if(o.voice.v) st.voice.v=o.voice.v; }}}catch(e){}
 function save(){ st.updatedAt=Date.now();
   try{localStorage.setItem(LS,JSON.stringify(st));}catch(e){} pushRemote(); }
 function bump(f,n){var d=today(),l=st.log[d]||{m:0};l[f]=(l[f]||0)+(n||1);st.log[d]=l;}
@@ -249,6 +273,7 @@ function mergeRemote(r){
   if(!r) return;
   if((r.updatedAt||0)>(st.updatedAt||0)){
     st.lvl=r.lvl||st.lvl; if(typeof r.showTR==="boolean") st.showTR=r.showTR;
+    if(r.voice&&typeof r.voice==="object") st.voice=r.voice;
   }
   var ids={}; st.saved.forEach(function(s){ids[s.id]=1;});
   arr(r.saved).forEach(function(s){ if(s&&s.id&&!ids[s.id]) st.saved.push(s); });
@@ -266,7 +291,7 @@ function doWrite(){
   if(!db||!uid||writing) return;
   writing=true; dirty=false;
   db.doc("data/users/"+uid+"/progress")
-    .set({lvl:st.lvl,showTR:st.showTR,saved:st.saved.slice(0,15),stats:st.stats,recent:st.recent.slice(0,25),log:st.log,updatedAt:Date.now()})
+    .set({lvl:st.lvl,showTR:st.showTR,voice:st.voice,saved:st.saved.slice(0,15),stats:st.stats,recent:st.recent.slice(0,25),log:st.log,updatedAt:Date.now()})
     .then(function(){writing=false; if(dirty) doWrite();}).catch(function(){writing=false;});
 }
 function pushRemote(){ if(!db||!uid) return; dirty=true; clearTimeout(pushT); pushT=setTimeout(doWrite,1800); }
@@ -316,6 +341,120 @@ function errCopy(e){ return (e&&ERRCOPY[e.code])||"Beklenmedik bir hata oldu. Te
   }).catch(function(){ done=true; aiState="off"; aiNote="error"; renderAll(); });
 })();
 
+/* ---------- ses: dinleme (dictation) + konuşma (tts) ---------- */
+var tts=null, dict=null, ttsOk=false, dictOk=false, voiceChecked=false, dictLang="en";
+var speakingId=null, ttsState="idle";
+var dictOn=false, dictBase="", dictFinal="", dictPartial="", dictNote="";
+function voiceRate(){ var r=st.voice&&st.voice.rate; return (typeof r==="number"&&r>=0.7&&r<=1.5)?r:0.9; }
+function voiceName(){ return (st.voice&&st.voice.v)||"buttery"; }
+function resetDict(){ dictBase=""; dictFinal=""; dictPartial=""; }
+
+(function(){
+  if(!window.claude||!window.claude.use){ voiceChecked=true; return; }
+  claude.use("tts").then(function(t){
+    voiceChecked=true;
+    if(t){ tts=t; ttsOk=true;
+      t.onState(function(e){
+        ttsState=(e&&e.state)||"idle";
+        if(ttsState==="idle"){
+          speakingId=null;
+          if(e&&(e.reason==="not_granted"||e.reason==="unavailable")) ttsOk=false;
+        }
+        paintVbar(); if(view==="chat") renderChat();
+      });
+    }
+    renderAll();
+  }).catch(function(){ voiceChecked=true; renderAll(); });
+  claude.use("dictation").then(function(d){
+    if(!d) return;
+    dict=d; dictOk=true;
+    d.onPartial(function(e){ dictPartial=(e&&e.text)||""; paintBox(); });
+    d.onFinal(function(e){ dictFinal+=((e&&e.text)||""); dictPartial=""; paintBox(); });
+    d.onState(function(e){
+      dictOn = e.state!=="idle";
+      if(e.state==="idle") dictEnded(e.reason);
+      paintMic();
+    });
+    renderAll();
+  }).catch(function(){});
+})();
+
+function paintBox(){
+  var b=$("box"); if(!b) return;
+  var t=dictBase+dictFinal+dictPartial;
+  if(!dictBase && t.charAt(0)===" ") t=t.slice(1);
+  b.value=t; b.classList.toggle("hot",!!dictPartial); sizeBox();
+}
+var DEND={not_granted:"Mikrofon izni verilmedi. Sayfanın izinler menüsünden açabilirsin.",
+  unavailable:"Sesli giriş bu görünümde yok. Chrome ya da Claude masaüstü uygulamasını dene.",
+  rate_limited:"Mikrofon çok sık kullanıldı, biraz bekle.",
+  upstream_error:"Mikrofonda bir sorun oldu, tekrar dene.",
+  time_limit:"Dinleme süresi doldu, tekrar başlat."};
+function dictEnded(reason){
+  dictOn=false; dictPartial="";
+  if(reason==="not_granted"||reason==="unavailable") dictOk=false;
+  dictNote=(reason&&DEND[reason])||"";
+  var b=$("box"), txt=b?b.value.trim():"";
+  if((reason==="stopped"||reason==="viewer_stopped")&&txt&&conv&&!conv.busy&&!conv.ended&&aiState==="ready"){
+    resetDict(); sendMsg(txt); return;
+  }
+  paintMic(); if(view==="chat") renderChat();
+}
+function micClick(){
+  if(!dict) return;
+  dictNote="";
+  if(dictOn){ dict.stop().catch(function(){}); paintMic(); return; }
+  if(tts&&tts.active&&tts.active()){ try{ tts.stop(); }catch(e){} }
+  var b=$("box"); dictBase=b?b.value:""; dictFinal=""; dictPartial="";
+  dict.start(dictLang?{language:dictLang}:undefined).catch(function(e){
+    var c=e&&e.code;
+    if(c==="stopped"){ dictOn=false; paintMic(); return; }
+    if(c==="unavailable"&&dictLang){ dictLang=null; dictNote="Mikrofona bir kez daha bas."; }
+    else if(c==="not_granted"){ dictOk=false; dictNote="Mikrofon izni verilmedi. Sayfanın izinler menüsünden açıp tekrar dene."; }
+    else if(c==="unavailable"){ dictOk=false; dictNote="Sesli giriş bu görünümde yok. Chrome ya da Claude masaüstü uygulamasını dene."; }
+    else if(c==="dismissed"){ dictNote="İzin penceresi kapandı. Mikrofona tekrar basabilirsin."; }
+    else if(c==="no_gesture"){ dictNote="Mikrofona tekrar bas."; }
+    else if(c==="rate_limited"){ dictNote="Mikrofon çok sık kullanıldı, biraz bekle."; }
+    else { dictNote="Mikrofon açılamadı, tekrar dene."; }
+    dictOn=false; paintMic(); if(view==="chat") renderChat();
+  });
+  paintMic();
+}
+function paintMic(){
+  var m=$("micBtn"); if(!m) return;
+  m.hidden=!dictOk;
+  m.disabled=!(dictOk&&conv&&!conv.busy&&!conv.ended&&aiState==="ready");
+  m.classList.toggle("on",dictOn);
+  m.textContent=dictOn?"■":"●";
+  m.title=dictOn?"Bitir ve gönder":"Konuş";
+  var b=$("box"); if(b) b.placeholder=dictOn?"Dinliyorum...":(dictOk?"Yaz ya da mikrofona bas":"İngilizce yaz...");
+}
+function paintVbar(){
+  var v=$("vbar"); if(!v) return;
+  var on=ttsOk&&ttsState!=="idle";
+  v.hidden=!on;
+  if(on) $("vbarTxt").textContent=(ttsState==="paused")?"Duraklatıldı":"Claude konuşuyor...";
+}
+function say(text,id){
+  if(!tts||!ttsOk) return;
+  var t=String(text||"").replace(/\s+/g," ").trim().slice(0,1900);
+  if(!t) return;
+  speakingId=id||"x"; if(view==="chat") renderChat();
+  tts.speak(t,{language:"en",rate:voiceRate(),voice:voiceName()}).then(function(){
+    speakingId=null; if(view==="chat") renderChat();
+  }).catch(function(e){
+    speakingId=null;
+    var c=e&&e.code;
+    if(c==="not_granted"||c==="unavailable"){ ttsOk=false; }
+    paintVbar(); renderAll();
+  });
+}
+function sayMsg(i){
+  if(!conv||!conv.msgs[i]) return;
+  if(speakingId==="m"+i&&tts){ try{ tts.stop(); }catch(e){} speakingId=null; renderChat(); return; }
+  say(conv.msgs[i].en,"m"+i);
+}
+
 /* ---------- istem metinleri ---------- */
 function levelRule(){
   return st.lvl==="A2"
@@ -333,7 +472,8 @@ function rulesTurn(sc){
   "3. Önce söylediğime cevap ver, sonra sohbeti sürdürmek için BİR soru sor.\n"+
   "4. Mesajımda net bir İngilizce hatası varsa sadece EN ÖNEMLİ bir tanesini düzelt. Büyük/küçük harf, noktalama ve yazım hatalarını görmezden gel. İngilizcem doğruysa 'correction' null olsun.\n"+
   "5. 'suggestions' benim bir sonraki repliğim olarak, benim ağzımdan, seviyeme uygun 3 kısa seçenek olsun.\n"+
-  "6. Önceki cevapların sana düz metin olarak gösteriliyor; sen yine de her zaman aşağıdaki JSON biçiminde cevap ver.\n\n"+
+  "6. 'reply' sesli okunacak: emoji, parantez içi açıklama, madde işareti ve yıldız kullanma. Düz cümle yaz.\n"+
+  "7. Önceki cevapların sana düz metin olarak gösteriliyor; sen yine de her zaman aşağıdaki JSON biçiminde cevap ver.\n\n"+
   "SADECE şu JSON nesnesini döndür, başka hiçbir şey yazma:\n"+
   '{"reply":"...","replyTR":"reply alanının Türkçesi","correction":null,"suggestions":["...","...","..."],"suggestionsTR":["...","...","..."],"words":[]}\n'+
   '"correction" varsa biçimi: {"wrong":"benim yazdığım hatalı kısım","right":"doğrusu","why":"tek cümlelik Türkçe açıklama"}\n'+
@@ -402,6 +542,7 @@ function startScenario(themeId){
     st.stats.convs=(st.stats.convs|0)+1; save();
     if(note) note.hidden=true;
     go("chat");
+    if(st.voice.auto&&ttsOk) say(first,"m0");
   }).catch(function(e){
     if(card) card.removeAttribute("aria-busy");
     if(e&&e.code==="cancelled") return;
@@ -421,7 +562,7 @@ function sendMsg(text){
   conv.hist=trimHist(conv.hist);
   conv.sugg=[]; conv.suggTR=[]; conv.busy=true; conv.err="";
   st.stats.msgs=(st.stats.msgs|0)+1; bump("m"); save();
-  $("box").value=""; sizeBox(); renderChat(); scrollDown();
+  resetDict(); $("box").value=""; $("box").classList.remove("hot"); sizeBox(); renderChat(); scrollDown();
 
   ask(conv.hist,{modelTier:"quick"}).then(function(d){
     conv.busy=false;
@@ -453,6 +594,7 @@ function applyReply(d){
   conv.sugg=arr(d&&d.suggestions).map(str).filter(Boolean).slice(0,3);
   conv.suggTR=arr(d&&d.suggestionsTR).map(str);
   save(); renderChat(); scrollDown();
+  if(st.voice.auto&&ttsOk) say(reply,"m"+(conv.msgs.length-1));
 }
 
 function hint(){
@@ -528,6 +670,45 @@ document.querySelectorAll(".tab").forEach(function(t){
   });
 });
 
+function voiceCard(){
+  if(!voiceChecked) return '<div class="note">Ses özellikleri kontrol ediliyor...</div>';
+  if(!ttsOk&&!dictOk)
+    return '<div class="card"><div class="lbl">Ses</div>'+
+      '<div class="sub mt">Sesli konuşma bu görünümde açılmıyor. Chrome veya Edge (Android ya da bilgisayar) '+
+      've Claude masaüstü uygulamasının ana penceresinde çalışır; Safari, Firefox ve Claude telefon '+
+      'uygulamasında çalışmaz. Yazarak sohbete devam edebilirsin.</div></div>';
+  var rates=[[0.75,"Yavaş"],[0.9,"Normal"],[1.1,"Hızlı"]];
+  var voices=[["buttery","Sıcak"],["airy","Hafif"],["glassy","Berrak"],["rounded","Dolgun"]];
+  return '<div class="card"><div class="lbl">Ses</div>'+
+    (ttsOk?
+      '<div class="vrow"><span class="vt">Claude cevaplarını sesli okusun</span>'+
+        '<button class="sw" id="vauto" aria-pressed="'+(!!st.voice.auto)+'"><i></i></button></div>'+
+      '<div class="vrow"><span class="vt">Konuşma hızı</span><div class="chips">'+
+        rates.map(function(r){return '<button class="pick" data-vr="'+r[0]+'" aria-pressed="'+
+          (voiceRate()===r[0])+'">'+r[1]+'</button>';}).join("")+'</div></div>'+
+      '<div class="vrow"><span class="vt">Ses tonu</span><div class="chips">'+
+        voices.map(function(v){return '<button class="pick" data-vv="'+v[0]+'" aria-pressed="'+
+          (voiceName()===v[0])+'">'+v[1]+'</button>';}).join("")+'</div></div>'+
+      '<div class="vrow"><button class="btn soft sm" id="vtest" style="flex:0 0 auto">Sesi dene</button>'+
+        '<span class="vt" style="font-size:13px;color:var(--ink2)">Seçtiğin hız ve tonla örnek cümle</span></div>'
+      : '')+
+    '<div class="vrow"><span class="vt" style="font-size:13.5px;color:var(--ink2)">'+
+      (dictOk
+        ? "Mikrofon hazır. Sohbette ● düğmesine bas, İngilizce konuş, bitince tekrar bas: sözlerin yazıya çevrilip gönderilir."
+        : "Bu görünümde mikrofon yok; Claude'u duyabilirsin ama cevabını yazman gerekiyor.")+
+    '</span></div></div>';
+}
+function bindVoiceCard(){
+  var a=$("vauto"); if(a) a.addEventListener("click",function(){ st.voice.auto=!st.voice.auto; save(); renderTopics(); });
+  document.querySelectorAll("[data-vr]").forEach(function(b){
+    b.addEventListener("click",function(){ st.voice.rate=parseFloat(b.dataset.vr); save(); renderTopics();
+      say("This is how fast I will speak.","test"); });});
+  document.querySelectorAll("[data-vv]").forEach(function(b){
+    b.addEventListener("click",function(){ st.voice.v=b.dataset.vv; save(); renderTopics();
+      say("Hello, this is my voice.","test"); });});
+  var t=$("vtest"); if(t) t.addEventListener("click",function(){
+    say("Hi! I am your conversation partner. Shall we start?","test"); });
+}
 function renderTopics(){
   var offline=aiState!=="ready";
   var s=st.stats;
@@ -557,11 +738,18 @@ function renderTopics(){
      '<div class="stat"><b class="num">'+(s.msgs|0)+'</b><span>cümlen</span></div>'+
      '<div class="stat"><b class="num">'+streak()+'</b><span>gün serisi</span></div>'+
    '</div>'+
+   voiceCard()+
    '<div class="card"><div class="lbl">Nasıl çalışır</div>'+
      '<div class="sub mt">Sen İngilizce yazıyorsun, karşındaki rolde cevap veriyor. Her mesajından sonra: '+
      'cümlende bir hata varsa altında düzeltmesi çıkar, konuşmaya devam etmen için 3 hazır cevap önerilir. '+
-     'Takılırsan <b>?</b> düğmesine bas. Bitirince Claude sana Türkçe bir değerlendirme yazar.</div></div>';
+     'Takılırsan <b>?</b> düğmesine bas. Bitirince Claude sana Türkçe bir değerlendirme yazar.'+
+     (dictOk||ttsOk?'<br><br><b>Sesli konuşma:</b> '+
+       (dictOk?'Mikrofona basıp İngilizce konuşuyorsun, sözlerin yazıya çevriliyor. ':'')+
+       (ttsOk?'Claude cevabını sesli okuyor; her mesajın altındaki ▸ ile tekrar dinleyebilirsin.':'')
+      :'')+
+     '</div></div>';
   var r=$("resume"); if(r) r.addEventListener("click",function(){ go("chat"); });
+  bindVoiceCard();
   var rb=$("randomBtn"); if(rb) rb.addEventListener("click",function(){ startScenario(null); });
   $("v-topics").querySelectorAll("[data-th]").forEach(function(b){
     b.addEventListener("click",function(){ startScenario(b.dataset.th); });
@@ -569,7 +757,7 @@ function renderTopics(){
 }
 
 function scrollDown(){ var m=$("msgs"); if(m) requestAnimationFrame(function(){ m.scrollTop=m.scrollHeight; }); }
-function msgHTML(m,who){
+function msgHTML(m,who,i){
   if(m.who==="them"){
     return '<div class="row them">'+
       '<div class="who">'+esc(who)+'</div>'+
@@ -577,6 +765,9 @@ function msgHTML(m,who){
       (st.showTR&&m.tr?'<div class="btr">'+esc(m.tr)+'</div>':'')+
       (m.words&&m.words.length?'<div class="wnew">'+m.words.map(function(w){
         return '<span>'+esc(w.w)+(w.tr?' — '+esc(w.tr):'')+'</span>';}).join("")+'</div>':'')+
+      (ttsOk?'<div class="spkrow"><button class="spk'+(speakingId==="m"+i?" on":"")+'" data-say="'+i+
+        '" title="Dinle" aria-label="Dinle">'+(speakingId==="m"+i?"\u25A0":"\u25B8")+'</button>'+
+        '<span style="font-size:11.5px;color:var(--ink3)">'+(speakingId==="m"+i?"okunuyor":"dinle")+'</span></div>':'')+
     '</div>';
   }
   return '<div class="row me">'+
@@ -591,10 +782,14 @@ function renderChat(){
   $("scenebar").innerHTML='<div class="sx"><b>'+esc(sc.title)+'</b><em>'+esc(sc.setting)+
     (sc.roleTR?' · '+esc(sc.roleTR):'')+'</em>'+
     (sc.goals&&sc.goals.length?'<em style="color:var(--accent);margin-top:4px">Hedef: '+esc(sc.goals.join(" · "))+'</em>':'')+
-    '</div><button class="btn ghost sm" id="finBtn" style="flex:0 0 auto">'+(conv.ended?"...":"Bitir")+'</button>';
-  $("msgsIn").innerHTML=conv.msgs.map(function(m){return msgHTML(m,sc.who);}).join("")+
+    '</div>'+
+    '<div style="flex:0 0 auto;display:flex;gap:6px">'+
+      '<button class="btn ghost sm" id="hintBtn" title="Ne diyebilirim?">?</button>'+
+      '<button class="btn ghost sm" id="finBtn">'+(conv.ended?"...":"Bitir")+'</button></div>';
+  $("msgsIn").innerHTML=conv.msgs.map(function(m,i){return msgHTML(m,sc.who,i);}).join("")+
     (conv.busy?'<div class="row them"><div class="bub typing"><i></i><i></i><i></i></div></div>':'')+
     (conv.err?'<div class="note bad">'+esc(conv.err)+'</div>':'')+
+    (dictNote?'<div class="note bad">'+esc(dictNote)+'</div>':'')+
     (conv.ended&&conv.busy?'<div class="note">Claude sohbeti değerlendiriyor...</div>':'');
   var sg=$("sugg");
   if(conv.sugg&&conv.sugg.length&&!conv.busy&&!conv.ended){
@@ -606,8 +801,13 @@ function renderChat(){
       b.addEventListener("click",function(){ sendMsg(conv.sugg[+b.dataset.s]); });});
   } else sg.hidden=true;
   var f=$("finBtn"); if(f) f.addEventListener("click",finish);
+  $("msgsIn").querySelectorAll("[data-say]").forEach(function(b){
+    b.addEventListener("click",function(){ sayMsg(+b.dataset.say); });});
+  var h=$("hintBtn"); if(h) h.addEventListener("click",hint);
   var blocked=conv.busy||conv.ended||aiState!=="ready";
-  $("box").disabled=blocked; $("sendBtn").disabled=blocked; $("hintBtn").disabled=blocked;
+  $("box").disabled=blocked; $("sendBtn").disabled=blocked;
+  if(h) h.disabled=blocked;
+  paintMic();
 }
 
 function renderSaved(){
@@ -668,7 +868,8 @@ $("box").addEventListener("keydown",function(e){
   }
 });
 $("sendBtn").addEventListener("click",function(){ sendMsg($("box").value); });
-$("hintBtn").addEventListener("click",hint);
+$("micBtn").addEventListener("click",micClick);
+$("vstop").addEventListener("click",function(){ if(tts){ try{ tts.stop(); }catch(e){} } });
 
 /* ---------- kontroller ---------- */
 $("lvlBtn").addEventListener("click",function(){
@@ -694,6 +895,7 @@ function renderAll(){
   if(view==="topics") renderTopics();
   else if(view==="chat") renderChat();
   else if(view==="saved") renderSaved();
+  paintVbar();
 }
 renderTopics();
 </script>
