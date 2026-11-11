@@ -1,0 +1,699 @@
+<title>Speaking Room</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Karla:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap">
+<style>
+/* Layout: sohbet odası - üstte senaryo çubuğu, ortada kayan balonlar, altta yazma alanı */
+:root{
+  --bg:#F1F5F7; --surface:#FFFFFF; --surface2:#E3EBEF; --raise:#F8FBFC;
+  --ink:#0F1E26; --ink2:#4A6069; --ink3:#73878F;
+  --line:#D4DFE4; --line2:#BACAD1;
+  --accent:#0C6880; --accent-ink:#FFFFFF; --accent-soft:#DDEEF3;
+  --me:#114C5E; --me-soft:#E6F2F6;
+  --warn:#A8541E; --warn-soft:#FBEADF;
+  --ok:#2A6F4C; --ok-soft:#DFEFE6;
+  --f-disp:"Archivo",system-ui,sans-serif;
+  --f-body:"Karla",system-ui,-apple-system,Segoe UI,sans-serif;
+  --f-mono:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --r:14px; --gut:max(16px,env(safe-area-inset-left,0px)); --gutr:max(16px,env(safe-area-inset-right,0px));
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#09151A; --surface:#112128; --surface2:#1B2F38; --raise:#162A32;
+  --ink:#E6EFF2; --ink2:#A2B8C0; --ink3:#7F959D;
+  --line:#223A43; --line2:#2F4C57;
+  --accent:#58C4E0; --accent-ink:#04171D; --accent-soft:#11323D;
+  --me:#7FD6EC; --me-soft:#10303A;
+  --warn:#E6A472; --warn-soft:#33210F;
+  --ok:#6FC79A; --ok-soft:#102A1D;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#09151A; --surface:#112128; --surface2:#1B2F38; --raise:#162A32;
+  --ink:#E6EFF2; --ink2:#A2B8C0; --ink3:#7F959D;
+  --line:#223A43; --line2:#2F4C57;
+  --accent:#58C4E0; --accent-ink:#04171D; --accent-soft:#11323D;
+  --me:#7FD6EC; --me-soft:#10303A;
+  --warn:#E6A472; --warn-soft:#33210F;
+  --ok:#6FC79A; --ok-soft:#102A1D;
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+html{height:100%;box-sizing:border-box;background:var(--surface)}
+body{height:100%;margin:0;overflow:hidden;display:flex;flex-direction:column;
+  background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px;border-radius:6px}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+.top{flex:0 0 auto;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{padding-left:var(--gut);padding-right:var(--gutr);padding-block:9px;display:flex;align-items:center;gap:8px}
+.brand{font-family:var(--f-disp);font-weight:800;font-size:16px;letter-spacing:-.02em;line-height:1.05;margin-right:auto;min-width:0}
+.brand span{display:block;font-family:var(--f-mono);font-size:9.5px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-top:2px}
+.iconbtn{width:34px;height:34px;border-radius:9px;border:1px solid var(--line2);display:grid;place-items:center;font-size:14px;flex:0 0 auto}
+.lvlbtn{height:34px;padding:0 11px;border-radius:9px;border:1px solid var(--line2);font-family:var(--f-mono);font-size:12px;font-weight:500;flex:0 0 auto}
+main{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+body.chat main{overflow:hidden}
+.wrap{padding-left:var(--gut);padding-right:var(--gutr);padding-block:15px 30px;max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:13px}
+.rail{flex:0 0 auto;background:var(--surface);border-top:1px solid var(--line)}
+.rail-in{padding-left:var(--gut);padding-right:var(--gutr);padding-block:5px;display:flex;gap:2px;max-width:760px;margin:0 auto}
+.tab{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px 5px;border-radius:9px;color:var(--ink3)}
+.tab b{font-size:10.5px;font-weight:600}
+.tab i{font-style:normal;font-size:16px;line-height:1}
+.tab[aria-selected="true"]{color:var(--accent);background:var(--accent-soft)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+h1,h2,h3{font-family:var(--f-disp);letter-spacing:-.025em;text-wrap:balance;margin:0;font-weight:700}
+h1{font-size:27px;line-height:1.1}
+h2{font-size:20px;line-height:1.15}
+h3{font-size:16px;line-height:1.2}
+.lbl{font-family:var(--f-mono);font-size:10px;font-weight:500;letter-spacing:.11em;text-transform:uppercase;color:var(--ink3)}
+.sub{color:var(--ink2);font-size:14px}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.mt{margin-top:5px}
+.badge{display:inline-block;font-family:var(--f-mono);font-size:9.5px;font-weight:500;letter-spacing:.08em;padding:3px 7px;border-radius:5px;background:var(--surface2);color:var(--ink2)}
+.badge.on{background:var(--ok-soft);color:var(--ok)}
+.badge.off{background:var(--warn-soft);color:var(--warn)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:46px;padding:11px 15px;border-radius:11px;
+  background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:15px;border:1px solid var(--accent);text-align:center}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line2);font-weight:600}
+.btn.soft{background:var(--surface2);color:var(--ink);border-color:transparent;font-weight:600}
+.btn.full{width:100%}
+.btn.sm{min-height:38px;padding:8px 12px;font-size:14px;border-radius:9px}
+.btn:disabled{opacity:.45;cursor:default}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap}
+.btnrow>*{flex:1 1 150px}
+
+/* konu kartları */
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:9px}
+.tcard{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:13px 12px;text-align:left;min-width:0}
+.tcard b{display:block;font-family:var(--f-disp);font-weight:700;font-size:15px;line-height:1.2;letter-spacing:-.015em}
+.tcard em{display:block;font-style:normal;font-size:12.5px;color:var(--ink3);margin-top:4px;line-height:1.35}
+.tcard i{display:block;font-style:normal;font-size:19px;margin-bottom:7px;line-height:1}
+.tcard[aria-busy="true"]{opacity:.5}
+.hero{background:linear-gradient(135deg,var(--accent-soft),var(--surface));border:1px solid var(--line2)}
+
+/* sohbet */
+#v-chat{display:flex;flex-direction:column;height:100%;padding-block:0;gap:0}
+.scenebar{flex:0 0 auto;padding-left:var(--gut);padding-right:var(--gutr);padding-block:10px;
+  background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
+.scenebar .sx{flex:1 1 auto;min-width:0}
+.scenebar b{display:block;font-family:var(--f-disp);font-size:15px;font-weight:700;line-height:1.2;letter-spacing:-.015em}
+.scenebar em{display:block;font-style:normal;font-size:12.5px;color:var(--ink2);margin-top:3px;line-height:1.35}
+.msgs{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  padding-left:var(--gut);padding-right:var(--gutr);padding-block:14px;display:flex;flex-direction:column;gap:11px}
+.msgs .inner{max-width:760px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:11px}
+.row{display:flex;flex-direction:column;gap:5px;max-width:90%}
+.row.me{align-self:flex-end;align-items:flex-end}
+.row.them{align-self:flex-start}
+.bub{padding:11px 13px;border-radius:15px;font-size:16px;line-height:1.45;word-wrap:break-word;overflow-wrap:anywhere}
+.row.them .bub{background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:5px}
+.row.me .bub{background:var(--me-soft);border:1px solid var(--line2);border-bottom-right-radius:5px;color:var(--ink)}
+.btr{font-size:13px;color:var(--ink2);line-height:1.4;padding:0 4px}
+.who{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);padding:0 4px}
+.fix{border-left:3px solid var(--warn);background:var(--warn-soft);border-radius:0 11px 11px 0;padding:9px 11px;font-size:13.5px;line-height:1.45}
+.fix s{color:var(--warn);text-decoration-color:var(--warn)}
+.fix b{color:var(--ok)}
+.fix i{display:block;font-style:normal;color:var(--ink2);margin-top:3px;font-size:12.5px}
+.wnew{display:flex;flex-wrap:wrap;gap:5px;padding:0 4px}
+.wnew span{font-size:12px;background:var(--surface2);color:var(--ink2);padding:3px 8px;border-radius:999px}
+.typing{display:inline-flex;gap:4px;align-items:center;padding:13px 15px}
+.typing i{width:6px;height:6px;border-radius:999px;background:var(--ink3);animation:bl 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes bl{0%,60%,100%{opacity:.25}30%{opacity:1}}
+
+.sugg{flex:0 0 auto;padding-left:var(--gut);padding-right:var(--gutr);padding-block:0 9px;
+  display:flex;gap:7px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.sugg .in{display:flex;gap:7px;max-width:760px;margin:0 auto;width:max-content}
+.schip{flex:0 0 auto;max-width:280px;text-align:left;padding:8px 12px;border-radius:999px;border:1px solid var(--accent);
+  background:var(--accent-soft);color:var(--accent);font-size:13.5px;font-weight:600;line-height:1.3}
+.schip em{display:block;font-style:normal;font-size:11.5px;color:var(--ink3);font-weight:500;margin-top:2px}
+
+.composer{flex:0 0 auto;background:var(--surface);border-top:1px solid var(--line)}
+.composer .in{padding-left:var(--gut);padding-right:var(--gutr);padding-block:9px;max-width:760px;margin:0 auto;
+  display:flex;gap:7px;align-items:flex-end}
+.composer textarea{flex:1 1 auto;min-width:0;resize:none;min-height:44px;max-height:120px;padding:10px 13px;
+  border-radius:12px;border:1.5px solid var(--line2);background:var(--bg);font-size:16px;line-height:1.35;font-family:inherit}
+.composer .act{flex:0 0 auto;width:44px;height:44px;border-radius:12px;background:var(--accent);color:var(--accent-ink);
+  display:grid;place-items:center;font-size:17px;border:0}
+.composer .act.ghost{background:var(--surface2);color:var(--ink2)}
+.composer .act:disabled{opacity:.4}
+
+.note{font-size:13px;color:var(--ink2);background:var(--surface2);border-radius:11px;padding:10px 12px;line-height:1.45}
+.note.bad{background:var(--warn-soft);color:var(--ink)}
+.empty{text-align:center;padding:28px 14px;color:var(--ink2);line-height:1.55}
+.empty b{display:block;font-family:var(--f-disp);font-size:18px;color:var(--ink);margin-bottom:6px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.stat{background:var(--surface);padding:11px 10px;min-width:0}
+.stat b{display:block;font-family:var(--f-disp);font-size:23px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{display:block;font-family:var(--f-mono);font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);margin-top:2px}
+.lrow{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line);width:100%;text-align:left}
+.lrow:last-child{border-bottom:0}
+.lrow .lx{flex:1 1 auto;min-width:0}
+.lrow .lx b{display:block;font-weight:700;font-size:15px;line-height:1.25}
+.lrow .lx em{display:block;font-style:normal;font-size:12.5px;color:var(--ink3);margin-top:3px}
+.lrow .lv{flex:0 0 auto;font-family:var(--f-mono);font-size:11px;color:var(--ink3);text-align:right}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.pick{padding:7px 11px;border-radius:999px;border:1px solid var(--line2);font-size:13px;font-weight:600;color:var(--ink2)}
+.pick[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+</style>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">Speaking Room<span id="hsub">Claude ile canlı konuşma</span></div>
+    <button class="lvlbtn" id="lvlBtn">A2</button>
+    <button class="iconbtn" id="trBtn" title="Türkçe çeviri">TR</button>
+    <button class="iconbtn" id="themeBtn" aria-label="Tema">◐</button>
+  </div>
+</header>
+
+<main id="main">
+  <section class="wrap" id="v-topics"></section>
+  <section id="v-chat" hidden>
+    <div class="scenebar" id="scenebar"></div>
+    <div class="msgs" id="msgs"><div class="inner" id="msgsIn"></div></div>
+    <div class="sugg" id="sugg" hidden><div class="in" id="suggIn"></div></div>
+    <div class="composer"><div class="in">
+      <button class="act ghost" id="hintBtn" title="Ne diyebilirim?">?</button>
+      <textarea id="box" rows="1" placeholder="İngilizce yaz..." autocomplete="off" autocapitalize="sentences"></textarea>
+      <button class="act" id="sendBtn" title="Gönder">↑</button>
+    </div></div>
+  </section>
+  <section class="wrap" id="v-saved" hidden></section>
+</main>
+
+<nav class="rail">
+  <div class="rail-in" role="tablist">
+    <button class="tab" role="tab" data-v="topics" aria-selected="true"><i>◎</i><b>Konular</b></button>
+    <button class="tab" role="tab" data-v="chat" aria-selected="false"><i>◗</i><b>Sohbet</b></button>
+    <button class="tab" role="tab" data-v="saved" aria-selected="false"><i>☰</i><b>Kayıtlar</b></button>
+  </div>
+</nav>
+
+<script>
+/* ============================================================
+   SPEAKING ROOM — Claude ile canlı rol yapma sohbeti (A2 / B1)
+   Her konu tıklaması yeni bir senaryo üretir: sınır yok.
+   ============================================================ */
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function $(id){return document.getElementById(id);}
+function pad(n){return n<10?"0"+n:""+n;}
+function today(){var d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
+function shortDate(ts){var d=new Date(ts);return pad(d.getDate())+"."+pad(d.getMonth()+1)+"."+d.getFullYear()+" "+pad(d.getHours())+":"+pad(d.getMinutes());}
+function arr(x){return Array.isArray(x)?x:[];}
+function str(x){return typeof x==="string"?x.trim():"";}
+
+/* ---------- konu paketleri ---------- */
+var THEMES=[
+ {id:"meet", i:"◍", t:"Tanışma", s:"İlk karşılaşma, kendini tanıtma, isim ve iş sorma"},
+ {id:"family", i:"◈", t:"Aile", s:"Aile üyeleri, akrabalar, evdeki hayat"},
+ {id:"job", i:"◆", t:"Meslek & İş", s:"İş, görev, çalışma saatleri, iş arkadaşları"},
+ {id:"daily", i:"◉", t:"Günlük hayat", s:"Rutin, sabah akşam, hafta sonu planı"},
+ {id:"food", i:"◐", t:"Yemek & Restoran", s:"Sipariş verme, tarif, helal, hesap"},
+ {id:"shop", i:"◑", t:"Alışveriş", s:"Beden, fiyat, indirim, iade"},
+ {id:"travel", i:"◒", t:"Seyahat & Yol", s:"Yol sorma, bilet, havalimanı, otel"},
+ {id:"health", i:"◓", t:"Sağlık", s:"Doktor, eczane, ağrı, randevu"},
+ {id:"home", i:"◔", t:"Ev & Komşular", s:"Kira, tamirat, komşuluk, taşınma"},
+ {id:"free", i:"◕", t:"Hobiler & Boş zaman", s:"Spor, film, müzik, hafta sonu"},
+ {id:"phone", i:"◖", t:"Telefon & Mesaj", s:"Telefonda konuşma, randevu alma, mesaj"},
+ {id:"study", i:"◗", t:"Okul & Kurs", s:"Ders, sınav, öğretmenle konuşma"},
+ {id:"weather", i:"◌", t:"Hava & Mevsimler", s:"Hava durumu, plan değiştirme, mevsimler"},
+ {id:"party", i:"◎", t:"Davet & Kutlama", s:"Davet etme, hediye, doğum günü, teşekkür"},
+ {id:"problem", i:"◘", t:"Problem & Şikâyet", s:"Bir şey ters gitti: nazikçe çözme"},
+ {id:"abroad", i:"◙", t:"Yurt dışı & Malezya", s:"Yabancı bir ülkede günlük durumlar"}
+];
+var THEMEMAP={}; THEMES.forEach(function(t){THEMEMAP[t.id]=t;});
+
+/* ---------- durum ---------- */
+var LS="sroom.v1";
+var st={lvl:"A2",showTR:true,saved:[],stats:{convs:0,msgs:0,fixes:0},recent:[],log:{},updatedAt:0};
+try{var raw=localStorage.getItem(LS); if(raw){var o=JSON.parse(raw);
+  st.lvl=o.lvl||"A2"; st.showTR=o.showTR!==false; st.saved=arr(o.saved); st.stats=o.stats||st.stats;
+  st.recent=arr(o.recent); st.log=o.log||{}; st.updatedAt=o.updatedAt||0;}}catch(e){}
+function save(){ st.updatedAt=Date.now();
+  try{localStorage.setItem(LS,JSON.stringify(st));}catch(e){} pushRemote(); }
+function bump(f,n){var d=today(),l=st.log[d]||{m:0};l[f]=(l[f]||0)+(n||1);st.log[d]=l;}
+function streak(){
+  var n=0,d=new Date(),k=today(),l=st.log[k];
+  if(!l||!(l.m>0)) d.setDate(d.getDate()-1);
+  for(var i=0;i<400;i++){
+    var key=d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()), e=st.log[key];
+    if(e&&e.m>0){n++; d.setDate(d.getDate()-1);} else break;
+  }
+  return n;
+}
+
+/* ---------- senkron ---------- */
+var db=null, uid=null, pushT=null, writing=false, dirty=false;
+function mergeRemote(r){
+  if(!r) return;
+  if((r.updatedAt||0)>(st.updatedAt||0)){
+    st.lvl=r.lvl||st.lvl; if(typeof r.showTR==="boolean") st.showTR=r.showTR;
+  }
+  var ids={}; st.saved.forEach(function(s){ids[s.id]=1;});
+  arr(r.saved).forEach(function(s){ if(s&&s.id&&!ids[s.id]) st.saved.push(s); });
+  st.saved.sort(function(a,b){return (b.ts||0)-(a.ts||0);});
+  st.saved=st.saved.slice(0,15);
+  var rs=r.stats||{};
+  st.stats={convs:Math.max(st.stats.convs|0,rs.convs|0),msgs:Math.max(st.stats.msgs|0,rs.msgs|0),fixes:Math.max(st.stats.fixes|0,rs.fixes|0)};
+  var rl=r.log||{};
+  for(var d in rl){var x=rl[d]||{},y=st.log[d]; st.log[d]=y?{m:Math.max(x.m|0,y.m|0)}:x;}
+  var seen={}; st.recent=arr(r.recent).concat(st.recent).filter(function(t){
+    if(!t||seen[t])return false; seen[t]=1; return true;}).slice(0,25);
+  try{localStorage.setItem(LS,JSON.stringify(st));}catch(e){}
+}
+function doWrite(){
+  if(!db||!uid||writing) return;
+  writing=true; dirty=false;
+  db.doc("data/users/"+uid+"/progress")
+    .set({lvl:st.lvl,showTR:st.showTR,saved:st.saved.slice(0,15),stats:st.stats,recent:st.recent.slice(0,25),log:st.log,updatedAt:Date.now()})
+    .then(function(){writing=false; if(dirty) doWrite();}).catch(function(){writing=false;});
+}
+function pushRemote(){ if(!db||!uid) return; dirty=true; clearTimeout(pushT); pushT=setTimeout(doWrite,1800); }
+(function(){
+  if(!window.claude||!window.claude.use) return;
+  Promise.all([claude.use("db"),claude.use("user")]).then(function(r){
+    var d=r[0],u=r[1]; if(!d||!u) return;
+    return u.id().then(function(id){
+      if(!id) return;
+      db=d; uid=id;
+      return db.doc("data/users/"+id+"/progress").get().then(function(sn){
+        if(sn.exists) mergeRemote(sn.data());
+        renderAll(); doWrite();
+      });
+    });
+  }).catch(function(){});
+})();
+document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden"&&dirty)doWrite();});
+
+/* ---------- Claude bağlantısı ---------- */
+var sample=null, aiState="loading", aiNote="";
+var ERRCOPY={
+  not_granted:"Claude'u kullanma izni verilmedi. Sayfanın menüsünden izinleri açıp tekrar dene.",
+  sampling_disabled:"Bu hesapta Claude kullanımı kapalı görünüyor.",
+  not_declared:"Bu sürüm Claude'a bağlanamıyor.",
+  capability_disabled:"Claude bu görünümde kullanılamıyor.",
+  capability_removed:"Uygulamayı açtığın sürüm bu özelliği desteklemiyor.",
+  rate_limited:"Çok hızlı gittik, Claude biraz nefeslendi. Yarım dakika sonra tekrar dene.",
+  session_expired:"Oturumun düşmüş. claude.ai'ye tekrar giriş yapıp sayfayı yenile.",
+  refused:"Claude bu mesaja cevap vermedi. Başka şekilde ifade etmeyi dene.",
+  empty_completion:"Cevap boş geldi. Biraz farklı yazıp tekrar dene.",
+  prompt_too_large:"Sohbet çok uzadı. Yeni bir konu başlat.",
+  upstream_error:"Bağlantıda bir sorun oldu. Tekrar dene.",
+  invalid_request:"Beklenmedik bir durum oldu. Yeni bir konu başlat."
+};
+var FATAL={not_granted:1,sampling_disabled:1,not_declared:1,capability_disabled:1,capability_removed:1};
+function errCopy(e){ return (e&&ERRCOPY[e.code])||"Beklenmedik bir hata oldu. Tekrar dene."; }
+
+(function(){
+  if(!window.claude||!window.claude.use){ aiState="off"; aiNote="offline"; renderAll(); return; }
+  var done=false;
+  setTimeout(function(){ if(!done){ aiState="off"; aiNote="timeout"; renderAll(); } },11000);
+  claude.use("sample").then(function(s){
+    done=true;
+    if(!s){ aiState="off"; aiNote="unavailable"; } else { sample=s; aiState="ready"; }
+    renderAll();
+  }).catch(function(){ done=true; aiState="off"; aiNote="error"; renderAll(); });
+})();
+
+/* ---------- istem metinleri ---------- */
+function levelRule(){
+  return st.lvl==="A2"
+    ? "A2 (temel). Kısa ve basit cümleler, en fazla 20 kelime. Present simple, present continuous, past simple, going to, can/must. Çok yaygın kelimeler. Deyim ve phrasal verb kullanma."
+    : "B1 (orta). Doğal günlük İngilizce, en fazla 35 kelime. Present perfect, modallar, first conditional, bağlaçlar serbest. Yaygın phrasal verb'ler olabilir, ağır deyimler olmasın.";
+}
+function rulesTurn(sc){
+  return "Sen benim İngilizce konuşma partnerimsin ve bir rol yapıyoruz. Aşağıdaki kurallara her cevapta uy.\n\n"+
+  "SENARYO: "+sc.setting+"\n"+
+  "SENİN ROLÜN: "+sc.role+"\n"+
+  "BENİM SEVİYEM: "+levelRule()+"\n\n"+
+  "Cevap kuralları:\n"+
+  "1. 'reply' alanı SADECE İngilizce olsun ve seviyeme uysun.\n"+
+  "2. Rolünden çıkma. Yapay zekâ olduğunu ya da bunun bir alıştırma olduğunu söyleme.\n"+
+  "3. Önce söylediğime cevap ver, sonra sohbeti sürdürmek için BİR soru sor.\n"+
+  "4. Mesajımda net bir İngilizce hatası varsa sadece EN ÖNEMLİ bir tanesini düzelt. Büyük/küçük harf, noktalama ve yazım hatalarını görmezden gel. İngilizcem doğruysa 'correction' null olsun.\n"+
+  "5. 'suggestions' benim bir sonraki repliğim olarak, benim ağzımdan, seviyeme uygun 3 kısa seçenek olsun.\n"+
+  "6. Önceki cevapların sana düz metin olarak gösteriliyor; sen yine de her zaman aşağıdaki JSON biçiminde cevap ver.\n\n"+
+  "SADECE şu JSON nesnesini döndür, başka hiçbir şey yazma:\n"+
+  '{"reply":"...","replyTR":"reply alanının Türkçesi","correction":null,"suggestions":["...","...","..."],"suggestionsTR":["...","...","..."],"words":[]}\n'+
+  '"correction" varsa biçimi: {"wrong":"benim yazdığım hatalı kısım","right":"doğrusu","why":"tek cümlelik Türkçe açıklama"}\n'+
+  '"words": cevabındaki en fazla 2 faydalı kelime, biçimi {"w":"kelime","tr":"Türkçesi"}. Yoksa boş dizi.';
+}
+function scenarioPrompt(themeId){
+  var th=THEMEMAP[themeId];
+  var avoid=st.recent.slice(0,12);
+  return "Türk bir İngilizce öğrencisi için taze ve somut bir rol yapma senaryosu kur.\n"+
+    "Tema: "+(th? th.t+" ("+th.s+")" : "günlük hayattan herhangi bir durum")+"\n"+
+    "Öğrencinin seviyesi: "+levelRule()+"\n"+
+    (avoid.length? "Şu başlıklara benzemesin: "+avoid.join("; ")+"\n" : "")+
+    "Senaryo klişe ders kitabı sahnesi olmasın; somut bir yer, somut bir kişi ve küçük bir amaç içersin.\n\n"+
+    "SADECE şu JSON nesnesini döndür:\n"+
+    '{"title":"kısa Türkçe başlık","titleEN":"kısa İngilizce başlık","setting":"tek cümle Türkçe: neredeyiz ve ben kimim",'+
+    '"role":"tek cümle İngilizce: SEN kimsin, bir isimle","roleTR":"aynısı Türkçe",'+
+    '"first":"senin ilk repliğin, İngilizce, seviyeye uygun, en fazla 25 kelime, soruyla bitsin","firstTR":"Türkçesi",'+
+    '"suggestions":["benim verebileceğim 3 kısa cevap"],"suggestionsTR":["Türkçeleri"],'+
+    '"goals":["bu sohbette başarmam gereken 2 kısa Türkçe mini hedef"]}';
+}
+
+/* ---------- Claude çağrısı ---------- */
+var ctl=null;
+function stopAI(){ if(ctl){ try{ctl.abort(); }catch(e){} ctl=null; } }
+function ask(input,opts){
+  if(!sample) return Promise.reject({code:"not_granted",message:"no sample"});
+  stopAI();
+  ctl=new AbortController();
+  var o={cache:false,signal:ctl.signal};
+  for(var k in (opts||{})) o[k]=opts[k];
+  return sample.json(input,o);
+}
+function softFail(e){
+  if(e&&FATAL[e.code]){ aiState="off"; aiNote=e.code; }
+  return (e&&e.code)||"upstream_error";
+}
+
+/* ---------- sohbet durumu ---------- */
+var conv=null;
+
+function startScenario(themeId){
+  if(aiState!=="ready") return;
+  var card=themeId?document.querySelector('[data-th="'+themeId+'"]'):$("randomBtn");
+  if(card) card.setAttribute("aria-busy","true");
+  var note=$("topicNote"); if(note){ note.hidden=false; note.className="note"; note.textContent="Claude yeni bir senaryo kuruyor..."; }
+  ask(scenarioPrompt(themeId),{modelTier:"default"}).then(function(d){
+    if(card) card.removeAttribute("aria-busy");
+    var sc={
+      theme:themeId||"random",
+      title:str(d&&d.title)||"Yeni sohbet",
+      titleEN:str(d&&d.titleEN)||"Conversation",
+      setting:str(d&&d.setting)||"Günlük bir durum.",
+      role:str(d&&d.role)||"You are a friendly local person.",
+      roleTR:str(d&&d.roleTR)||"",
+      goals:arr(d&&d.goals).map(str).filter(Boolean).slice(0,3)
+    };
+    var m=sc.role.match(/\b(?:called|named)\s+([A-Z][a-zA-Z]+)/);
+    sc.who=m?m[1]:"Partner";
+    var first=str(d&&d.first)||"Hello! How are you today?";
+    conv={sc:sc,ended:false,busy:false,
+      msgs:[{who:"them",en:first,tr:str(d&&d.firstTR),words:[]}],
+      sugg:arr(d&&d.suggestions).map(str).filter(Boolean).slice(0,3),
+      suggTR:arr(d&&d.suggestionsTR).map(str),
+      hist:[{role:"user",content:rulesTurn(sc)},{role:"assistant",content:first}]};
+    st.recent.unshift(sc.title); st.recent=st.recent.slice(0,25);
+    st.stats.convs=(st.stats.convs|0)+1; save();
+    if(note) note.hidden=true;
+    go("chat");
+  }).catch(function(e){
+    if(card) card.removeAttribute("aria-busy");
+    if(e&&e.code==="cancelled") return;
+    softFail(e);
+    if(note){ note.hidden=false; note.className="note bad"; note.textContent=errCopy(e); }
+    renderTopics();
+  });
+}
+
+function trimHist(h){ return h.length>15 ? [h[0]].concat(h.slice(h.length-14)) : h; }
+
+function sendMsg(text){
+  text=String(text||"").trim();
+  if(!text||!conv||conv.busy||conv.ended||aiState!=="ready") return;
+  conv.msgs.push({who:"me",en:text,fix:null});
+  conv.hist.push({role:"user",content:text});
+  conv.hist=trimHist(conv.hist);
+  conv.sugg=[]; conv.suggTR=[]; conv.busy=true; conv.err="";
+  st.stats.msgs=(st.stats.msgs|0)+1; bump("m"); save();
+  $("box").value=""; sizeBox(); renderChat(); scrollDown();
+
+  ask(conv.hist,{modelTier:"quick"}).then(function(d){
+    conv.busy=false;
+    applyReply(d);
+  }).catch(function(e){
+    conv.busy=false;
+    if(e&&e.code==="cancelled"){ renderChat(); return; }
+    if(e&&e.code==="invalid_json"&&str(e.text)){
+      applyReply({reply:str(e.text),replyTR:"",correction:null,suggestions:[],words:[]});
+      return;
+    }
+    softFail(e);
+    conv.err=errCopy(e);
+    renderChat(); scrollDown();
+  });
+}
+function applyReply(d){
+  var reply=str(d&&d.reply)||"Sorry, could you say that again?";
+  var fix=d&&d.correction&&str(d.correction.right)?{
+    wrong:str(d.correction.wrong),right:str(d.correction.right),why:str(d.correction.why)}:null;
+  if(fix){
+    for(var i=conv.msgs.length-1;i>=0;i--){ if(conv.msgs[i].who==="me"){ conv.msgs[i].fix=fix; break; } }
+    st.stats.fixes=(st.stats.fixes|0)+1;
+  }
+  conv.msgs.push({who:"them",en:reply,tr:str(d&&d.replyTR),
+    words:arr(d&&d.words).filter(function(w){return w&&str(w.w);}).slice(0,2)
+      .map(function(w){return {w:str(w.w),tr:str(w.tr)};})});
+  conv.hist.push({role:"assistant",content:reply});
+  conv.sugg=arr(d&&d.suggestions).map(str).filter(Boolean).slice(0,3);
+  conv.suggTR=arr(d&&d.suggestionsTR).map(str);
+  save(); renderChat(); scrollDown();
+}
+
+function hint(){
+  if(!conv||conv.busy||conv.ended||aiState!=="ready") return;
+  var last=""; for(var i=conv.msgs.length-1;i>=0;i--) if(conv.msgs[i].who==="them"){ last=conv.msgs[i].en; break; }
+  conv.busy=true; conv.err=""; renderChat();
+  ask("Bir rol yapma sohbetindeyim. Senaryo: "+conv.sc.setting+"\n"+
+      "Karşımdaki kişi az önce şunu söyledi: \""+last+"\"\n"+
+      "Seviyem: "+levelRule()+"\n\n"+
+      "Benim ağzımdan söyleyebileceğim 3 doğal İngilizce cevap öner. SADECE şu JSON:\n"+
+      '{"suggestions":["...","...","..."],"suggestionsTR":["...","...","..."]}',{modelTier:"quick"})
+  .then(function(d){
+    conv.busy=false;
+    conv.sugg=arr(d&&d.suggestions).map(str).filter(Boolean).slice(0,3);
+    conv.suggTR=arr(d&&d.suggestionsTR).map(str);
+    renderChat();
+  }).catch(function(e){
+    conv.busy=false;
+    if(e&&e.code!=="cancelled"){ softFail(e); conv.err=errCopy(e); }
+    renderChat();
+  });
+}
+
+function finish(){
+  if(!conv||conv.busy) return;
+  var mine=conv.msgs.filter(function(m){return m.who==="me";});
+  stopAI();
+  if(!mine.length){ conv=null; go("topics"); return; }
+  conv.busy=true; conv.ended=true; renderChat();
+  var lines=mine.map(function(m,i){return (i+1)+". "+m.en;}).join("\n");
+  ask("Türk bir öğrenciyim ("+st.lvl+" seviye) ve şu konuda İngilizce rol yapma sohbeti yaptım: "+conv.sc.title+"\n"+
+      "Sohbette kurduğum cümleler:\n"+lines+"\n\n"+
+      "Bana Türkçe geri bildirim ver. SADECE şu JSON:\n"+
+      '{"good":"1-2 cümle Türkçe: iyi yaptığım şeyler","fix":[{"wrong":"...","right":"...","why":"kısa Türkçe açıklama"}],'+
+      '"words":[{"w":"İngilizce kelime veya kalıp","tr":"Türkçesi"}],"score":0}\n'+
+      '"fix": en önemli en fazla 4 hatam; hata yoksa boş dizi. "words": bu konudan öğrenmem gereken en fazla 6 faydalı ifade. "score": 0-100 genel puan.',
+      {modelTier:"default"})
+  .then(function(d){ storeConv(d); }).catch(function(e){
+    if(e&&e.code==="cancelled"){ conv.busy=false; renderChat(); return; }
+    softFail(e); storeConv(null,errCopy(e));
+  });
+}
+function storeConv(d,errText){
+  var rec={id:"c"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+    ts:Date.now(), title:conv.sc.title, titleEN:conv.sc.titleEN, theme:conv.sc.theme, lvl:st.lvl,
+    n:conv.msgs.filter(function(m){return m.who==="me";}).length,
+    good:str(d&&d.good), score:(d&&typeof d.score==="number")?Math.max(0,Math.min(100,Math.round(d.score))):null,
+    fix:arr(d&&d.fix).filter(function(f){return f&&str(f.right);}).slice(0,4)
+        .map(function(f){return {wrong:str(f.wrong),right:str(f.right),why:str(f.why)};}),
+    words:arr(d&&d.words).filter(function(w){return w&&str(w.w);}).slice(0,6)
+        .map(function(w){return {w:str(w.w),tr:str(w.tr)};}),
+    msgs:conv.msgs.slice(-40).map(function(m){return [m.who==="me"?1:0,m.en,m.tr||""];}),
+    err:errText||""};
+  st.saved.unshift(rec); st.saved=st.saved.slice(0,15); save();
+  conv=null; openSaved=rec.id; go("saved");
+}
+
+/* ---------- görünümler ---------- */
+var VIEWS=["topics","chat","saved"], view="topics", openSaved=null;
+function go(v){
+  view=v;
+  VIEWS.forEach(function(x){ $("v-"+x).hidden=(x!==v); });
+  document.body.classList.toggle("chat",v==="chat");
+  document.querySelectorAll(".tab").forEach(function(t){ t.setAttribute("aria-selected",String(t.dataset.v===v)); });
+  if(v!=="chat") $("main").scrollTop=0;
+  renderAll();
+  if(v==="chat") scrollDown();
+}
+document.querySelectorAll(".tab").forEach(function(t){
+  t.addEventListener("click",function(){
+    if(t.dataset.v==="chat"&&!conv){ go("topics"); return; }
+    go(t.dataset.v);
+  });
+});
+
+function renderTopics(){
+  var offline=aiState!=="ready";
+  var s=st.stats;
+  $("hsub").textContent = aiState==="ready" ? "Claude ile canlı konuşma" : (aiState==="loading"?"bağlanıyor...":"Claude kapalı");
+  $("v-topics").innerHTML=
+   '<div class="card"><div class="lbl">Konuşma pratiği</div>'+
+     '<h1 class="mt">Her tıklamada yeni bir sahne</h1>'+
+     '<div class="sub mt">Bir tema seç; Claude sana özel bir senaryo kurar, bir rol üstlenir ve '+st.lvl+
+     ' seviyesinde seninle konuşur. Hatanı düzeltir, ne diyebileceğini önerir. Konu sayısı sınırsız.</div>'+
+     (conv? '<div class="btnrow" style="margin-top:13px"><button class="btn" id="resume">Devam eden sohbete dön</button></div>':'')+
+   '</div>'+
+   (aiState==="loading"? '<div class="note">Claude bağlantısı kuruluyor...</div>' : '')+
+   (aiState==="off"? '<div class="note bad"><b>Claude şu an kullanılamıyor.</b><br>'+
+     (aiNote==="offline"
+       ? "Bu sayfayı claude.ai üzerinden açman gerekiyor; indirilmiş dosya olarak çalışmaz."
+       : "Sayfanın menüsünden Claude iznini açıp yenilemeyi dene. İzin verilmeden sohbet başlayamaz.")+
+     '</div>' : '')+
+   '<button class="tcard hero" id="randomBtn"'+(offline?" disabled":"")+' style="width:100%">'+
+     '<i>✦</i><b>Rastgele konu başlat</b><em>Claude ne hakkında konuşacağımıza kendi karar versin</em></button>'+
+   '<div id="topicNote" class="note" hidden></div>'+
+   '<div class="lbl" style="margin-top:4px">Temalar</div>'+
+   '<div class="tgrid">'+THEMES.map(function(t){
+     return '<button class="tcard" data-th="'+t.id+'"'+(offline?" disabled":"")+'>'+
+       '<i>'+t.i+'</i><b>'+esc(t.t)+'</b><em>'+esc(t.s)+'</em></button>';}).join("")+'</div>'+
+   '<div class="stats" style="margin-top:4px">'+
+     '<div class="stat"><b class="num">'+(s.convs|0)+'</b><span>sohbet</span></div>'+
+     '<div class="stat"><b class="num">'+(s.msgs|0)+'</b><span>cümlen</span></div>'+
+     '<div class="stat"><b class="num">'+streak()+'</b><span>gün serisi</span></div>'+
+   '</div>'+
+   '<div class="card"><div class="lbl">Nasıl çalışır</div>'+
+     '<div class="sub mt">Sen İngilizce yazıyorsun, karşındaki rolde cevap veriyor. Her mesajından sonra: '+
+     'cümlende bir hata varsa altında düzeltmesi çıkar, konuşmaya devam etmen için 3 hazır cevap önerilir. '+
+     'Takılırsan <b>?</b> düğmesine bas. Bitirince Claude sana Türkçe bir değerlendirme yazar.</div></div>';
+  var r=$("resume"); if(r) r.addEventListener("click",function(){ go("chat"); });
+  var rb=$("randomBtn"); if(rb) rb.addEventListener("click",function(){ startScenario(null); });
+  $("v-topics").querySelectorAll("[data-th]").forEach(function(b){
+    b.addEventListener("click",function(){ startScenario(b.dataset.th); });
+  });
+}
+
+function scrollDown(){ var m=$("msgs"); if(m) requestAnimationFrame(function(){ m.scrollTop=m.scrollHeight; }); }
+function msgHTML(m,who){
+  if(m.who==="them"){
+    return '<div class="row them">'+
+      '<div class="who">'+esc(who)+'</div>'+
+      '<div class="bub">'+esc(m.en)+'</div>'+
+      (st.showTR&&m.tr?'<div class="btr">'+esc(m.tr)+'</div>':'')+
+      (m.words&&m.words.length?'<div class="wnew">'+m.words.map(function(w){
+        return '<span>'+esc(w.w)+(w.tr?' — '+esc(w.tr):'')+'</span>';}).join("")+'</div>':'')+
+    '</div>';
+  }
+  return '<div class="row me">'+
+    '<div class="bub">'+esc(m.en)+'</div>'+
+    (m.fix?'<div class="fix"><s>'+esc(m.fix.wrong||m.en)+'</s> → <b>'+esc(m.fix.right)+'</b>'+
+      (m.fix.why?'<i>'+esc(m.fix.why)+'</i>':'')+'</div>':'')+
+  '</div>';
+}
+function renderChat(){
+  if(!conv){ $("scenebar").innerHTML=""; $("msgsIn").innerHTML=""; $("sugg").hidden=true; return; }
+  var sc=conv.sc;
+  $("scenebar").innerHTML='<div class="sx"><b>'+esc(sc.title)+'</b><em>'+esc(sc.setting)+
+    (sc.roleTR?' · '+esc(sc.roleTR):'')+'</em>'+
+    (sc.goals&&sc.goals.length?'<em style="color:var(--accent);margin-top:4px">Hedef: '+esc(sc.goals.join(" · "))+'</em>':'')+
+    '</div><button class="btn ghost sm" id="finBtn" style="flex:0 0 auto">'+(conv.ended?"...":"Bitir")+'</button>';
+  $("msgsIn").innerHTML=conv.msgs.map(function(m){return msgHTML(m,sc.who);}).join("")+
+    (conv.busy?'<div class="row them"><div class="bub typing"><i></i><i></i><i></i></div></div>':'')+
+    (conv.err?'<div class="note bad">'+esc(conv.err)+'</div>':'')+
+    (conv.ended&&conv.busy?'<div class="note">Claude sohbeti değerlendiriyor...</div>':'');
+  var sg=$("sugg");
+  if(conv.sugg&&conv.sugg.length&&!conv.busy&&!conv.ended){
+    sg.hidden=false;
+    $("suggIn").innerHTML=conv.sugg.map(function(s,i){
+      return '<button class="schip" data-s="'+i+'">'+esc(s)+
+        (st.showTR&&conv.suggTR[i]?'<em>'+esc(conv.suggTR[i])+'</em>':'')+'</button>';}).join("");
+    $("suggIn").querySelectorAll("[data-s]").forEach(function(b){
+      b.addEventListener("click",function(){ sendMsg(conv.sugg[+b.dataset.s]); });});
+  } else sg.hidden=true;
+  var f=$("finBtn"); if(f) f.addEventListener("click",finish);
+  var blocked=conv.busy||conv.ended||aiState!=="ready";
+  $("box").disabled=blocked; $("sendBtn").disabled=blocked; $("hintBtn").disabled=blocked;
+}
+
+function renderSaved(){
+  var el=$("v-saved");
+  if(openSaved){
+    var r=null; for(var i=0;i<st.saved.length;i++) if(st.saved[i].id===openSaved) r=st.saved[i];
+    if(!r){ openSaved=null; renderSaved(); return; }
+    el.innerHTML='<button class="btn soft sm" id="sback" style="align-self:flex-start">← Kayıtlar</button>'+
+      '<div class="card"><div class="lbl">'+esc(shortDate(r.ts))+' · '+esc(r.lvl||"")+'</div>'+
+        '<h2 class="mt">'+esc(r.title)+'</h2>'+
+        '<div class="sub mt">'+esc(r.titleEN||"")+' · '+(r.n|0)+' cümle kurdun</div>'+
+        (r.score!=null?'<div class="stats" style="margin-top:12px">'+
+          '<div class="stat"><b class="num">'+r.score+'</b><span>puan</span></div>'+
+          '<div class="stat"><b class="num">'+(r.fix?r.fix.length:0)+'</b><span>düzeltme</span></div>'+
+          '<div class="stat"><b class="num">'+(r.words?r.words.length:0)+'</b><span>kelime</span></div></div>':'')+
+        (r.err?'<div class="note bad" style="margin-top:11px">'+esc(r.err)+'</div>':'')+
+      '</div>'+
+      (r.good?'<div class="card"><div class="lbl">İyi gidenler</div><div class="sub mt" style="color:var(--ink)">'+esc(r.good)+'</div></div>':'')+
+      (r.fix&&r.fix.length?'<div class="card"><div class="lbl">Düzeltmeler</div><div style="margin-top:9px;display:flex;flex-direction:column;gap:8px">'+
+        r.fix.map(function(f){return '<div class="fix"><s>'+esc(f.wrong)+'</s> → <b>'+esc(f.right)+'</b>'+
+          (f.why?'<i>'+esc(f.why)+'</i>':'')+'</div>';}).join("")+'</div></div>':'')+
+      (r.words&&r.words.length?'<div class="card"><div class="lbl">Bu konudan kelimeler</div>'+
+        '<div class="wnew" style="margin-top:9px">'+r.words.map(function(w){
+          return '<span>'+esc(w.w)+(w.tr?' — '+esc(w.tr):'')+'</span>';}).join("")+'</div></div>':'')+
+      (r.msgs&&r.msgs.length?'<div class="card"><div class="lbl">Sohbet dökümü</div>'+
+        '<div style="margin-top:10px;display:flex;flex-direction:column;gap:9px">'+
+        r.msgs.map(function(m){
+          return '<div class="row '+(m[0]?"me":"them")+'" style="max-width:100%"><div class="bub">'+esc(m[1])+'</div>'+
+            (st.showTR&&m[2]?'<div class="btr">'+esc(m[2])+'</div>':'')+'</div>';}).join("")+'</div></div>':'');
+    $("sback").addEventListener("click",function(){ openSaved=null; renderSaved(); });
+    return;
+  }
+  var s=st.stats;
+  el.innerHTML='<div class="card"><div class="lbl">Toplam</div>'+
+     '<h1 class="mt num">'+(s.msgs|0)+'</h1><div class="sub">İngilizce cümle kurdun</div>'+
+     '<div class="stats" style="margin-top:12px">'+
+       '<div class="stat"><b class="num">'+(s.convs|0)+'</b><span>sohbet</span></div>'+
+       '<div class="stat"><b class="num">'+(s.fixes|0)+'</b><span>düzeltme</span></div>'+
+       '<div class="stat"><b class="num">'+streak()+'</b><span>gün serisi</span></div></div></div>'+
+    (st.saved.length
+      ? '<div class="card"><div class="lbl">Geçmiş sohbetler</div><div style="margin-top:6px">'+
+        st.saved.map(function(r){
+          return '<button class="lrow" data-r="'+esc(r.id)+'"><div class="lx"><b>'+esc(r.title)+'</b>'+
+            '<em>'+esc(shortDate(r.ts))+' · '+(r.n|0)+' cümle'+(r.fix&&r.fix.length?' · '+r.fix.length+' düzeltme':'')+'</em></div>'+
+            '<div class="lv">'+(r.score!=null?r.score:"—")+'</div></button>';}).join("")+
+        '</div><div class="sub mt" style="font-size:12.5px">Son 15 sohbet saklanır.</div></div>'
+      : '<div class="card"><div class="empty"><b>Henüz kayıt yok</b>Bir sohbeti bitirdiğinde Claude sana Türkçe değerlendirme yazar ve buraya düşer.</div></div>');
+  el.querySelectorAll("[data-r]").forEach(function(b){
+    b.addEventListener("click",function(){ openSaved=b.dataset.r; renderSaved(); });});
+}
+
+/* ---------- yazma alanı ---------- */
+function sizeBox(){ var b=$("box"); b.style.height="auto"; b.style.height=Math.min(b.scrollHeight,120)+"px"; }
+$("box").addEventListener("input",sizeBox);
+$("box").addEventListener("keydown",function(e){
+  if(e.key==="Enter"&&!e.shiftKey&&window.matchMedia("(min-width:700px)").matches){
+    e.preventDefault(); sendMsg($("box").value);
+  }
+});
+$("sendBtn").addEventListener("click",function(){ sendMsg($("box").value); });
+$("hintBtn").addEventListener("click",hint);
+
+/* ---------- kontroller ---------- */
+$("lvlBtn").addEventListener("click",function(){
+  st.lvl = st.lvl==="A2" ? "B1" : "A2"; save(); renderAll();
+});
+$("trBtn").addEventListener("click",function(){ st.showTR=!st.showTR; save(); renderAll(); });
+(function(){
+  var k="sroom.theme",cur=null;
+  try{cur=localStorage.getItem(k);}catch(e){}
+  if(cur) document.documentElement.setAttribute("data-theme",cur);
+  $("themeBtn").addEventListener("click",function(){
+    var now=document.documentElement.getAttribute("data-theme");
+    var nx=now==="dark"?"light":(now==="light"?null:"dark");
+    if(nx) document.documentElement.setAttribute("data-theme",nx); else document.documentElement.removeAttribute("data-theme");
+    try{nx?localStorage.setItem(k,nx):localStorage.removeItem(k);}catch(e){}
+  });
+})();
+
+function renderAll(){
+  $("lvlBtn").textContent=st.lvl;
+  $("trBtn").className="iconbtn"; $("trBtn").style.color=st.showTR?"var(--accent)":"var(--ink3)";
+  $("trBtn").style.borderColor=st.showTR?"var(--accent)":"var(--line2)";
+  if(view==="topics") renderTopics();
+  else if(view==="chat") renderChat();
+  else if(view==="saved") renderSaved();
+}
+renderTopics();
+</script>
