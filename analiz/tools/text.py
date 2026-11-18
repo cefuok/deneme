@@ -1,0 +1,11 @@
+import re, sys, html as H
+s = open(sys.argv[1], encoding='utf-8').read()
+s = re.sub(r'<(script|style)[^>]*>.*?</\1>', ' ', s, flags=re.S|re.I)
+s = re.sub(r'<!--.*?-->', ' ', s, flags=re.S)
+s = re.sub(r'<br[^>]*>', '\n', s, flags=re.I)
+s = re.sub(r'</(p|tr|div|table)>', '\n', s, flags=re.I)
+s = re.sub(r'<[^>]+>', '', s)
+s = H.unescape(s)
+s = re.sub(r'[ \t\xa0]+', ' ', s)
+s = '\n'.join(l.strip() for l in s.split('\n') if l.strip())
+print(s)
