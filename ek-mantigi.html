@@ -1,0 +1,1517 @@
+<title>Ek Mantığı</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: telefon kabuğu — sabit üst bar, kayan ekran, alt sekme çubuğu */
+:root{
+  --bg:#F2F4F6; --app:#FBFCFD; --surface:#FFFFFF; --surface-2:#F4F6F8;
+  --ink:#121A20; --muted:#5E6E7B; --line:#E3E8EC;
+  --primary:#0E6B63; --primary-soft:#D9EEEB; --primary-ink:#0A4E48;
+  --accent:#C9741C; --accent-soft:#FBEBD8;
+  --ok:#1C7F52; --ok-soft:#DFF2E7; --bad:#B8362C; --bad-soft:#FAE3E1;
+  --font-d:'Sora',system-ui,sans-serif; --font-b:'Manrope',system-ui,sans-serif;
+  --r:14px; --shadow:0 1px 2px rgba(18,26,32,.05),0 8px 24px rgba(18,26,32,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#070A0C; --app:#0E1317; --surface:#161D22; --surface-2:#1D262C;
+  --ink:#E8EEF2; --muted:#94A6B2; --line:#27333A;
+  --primary:#3FC2B2; --primary-soft:#12302E; --primary-ink:#8FE2D7;
+  --accent:#E8A75C; --accent-soft:#33240F;
+  --ok:#49C98A; --ok-soft:#10301F; --bad:#F0867A; --bad-soft:#331513;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#070A0C; --app:#0E1317; --surface:#161D22; --surface-2:#1D262C;
+  --ink:#E8EEF2; --muted:#94A6B2; --line:#27333A;
+  --primary:#3FC2B2; --primary-soft:#12302E; --primary-ink:#8FE2D7;
+  --accent:#E8A75C; --accent-soft:#33240F;
+  --ok:#49C98A; --ok-soft:#10301F; --bad:#F0867A; --bad-soft:#331513;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-b);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--surface)}
+h1,h2,h3,h4{font-family:var(--font-d);margin:0;text-wrap:balance;line-height:1.25}
+p{margin:0}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:6px}
+
+/* ---- kabuk ---- */
+#app{max-width:470px;margin:0 auto;min-height:calc(100vh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));background:var(--app);position:relative}
+@media(min-width:720px){
+  #app{box-shadow:0 0 0 1px var(--line),0 24px 70px rgba(10,20,28,.14)}
+}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* ---- üst bar ---- */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--surface);border-bottom:1px solid var(--line)}
+.topbar-in{display:flex;align-items:center;gap:10px;padding-block:11px;min-height:54px}
+.tb-title{font-family:var(--font-d);font-weight:600;font-size:16.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tb-sub{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase;display:block;line-height:1.3}
+.iconbtn{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;flex:none;color:var(--muted)}
+.iconbtn:hover{background:var(--surface-2);color:var(--ink)}
+.iconbtn svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---- ekran ---- */
+.screen{padding-block:16px 0;animation:fade .22s ease}
+@keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.screen{animation:none}*{transition:none!important}}
+.pad-bottom{height:calc(84px + env(safe-area-inset-bottom,0px))}
+
+/* ---- alt sekmeler ---- */
+.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,470px);z-index:35;
+  background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(14px);
+  border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  padding-left:max(6px,env(safe-area-inset-left,0px));padding-right:max(6px,env(safe-area-inset-right,0px));
+  display:flex}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 2px 8px;color:var(--muted);font-size:10.5px;font-weight:600;letter-spacing:.01em}
+.tab svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tab[aria-current="page"]{color:var(--primary)}
+.tab[aria-current="page"] svg{stroke-width:2.2}
+
+/* ---- genel parçalar ---- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);font-size:12px;font-weight:600;color:var(--muted)}
+.chip.on{background:var(--primary-soft);border-color:transparent;color:var(--primary-ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border-radius:12px;background:var(--primary);color:#fff;font-weight:700;font-size:14.5px;width:100%}
+:root[data-theme="dark"] .btn,:root:not([data-theme="light"]) .btn{color:#06201E}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .btn{color:#fff}}
+.btn.ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn.soft{background:var(--primary-soft);color:var(--primary-ink)}
+.btn:disabled{opacity:.45;cursor:default}
+
+/* ilerleme çubuğu */
+.bar{height:6px;border-radius:999px;background:var(--surface-2);overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:999px;background:var(--primary);transition:width .4s ease}
+.bar.acc>i{background:var(--accent)}
+
+/* formül şeridi — kitabın değişmez yapısı */
+.formula{display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-family:var(--font-d);font-size:12.5px;font-weight:600}
+.formula span{padding:4px 9px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line)}
+.formula span.k{background:var(--accent-soft);border-color:transparent;color:var(--accent)}
+.formula b{color:var(--muted);font-weight:600}
+
+/* konu içeriği */
+.prose{display:flex;flex-direction:column;gap:13px;font-size:15px;line-height:1.72}
+.prose h4{font-size:15.5px;font-weight:600;margin-top:7px;color:var(--ink);display:flex;align-items:center;gap:8px}
+.prose h4::before{content:"";width:3px;height:16px;border-radius:2px;background:var(--primary);flex:none}
+.prose ul{margin:0;padding-left:19px;display:flex;flex-direction:column;gap:7px}
+.prose li::marker{color:var(--primary)}
+.rule{background:var(--accent-soft);border-radius:12px;padding:12px 13px;font-size:14px;line-height:1.6;border-left:3px solid var(--accent)}
+.rule b{color:var(--accent)}
+.ex{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 12px;display:flex;flex-direction:column;gap:4px}
+.ex .en{font-weight:700;font-size:14.5px;letter-spacing:-.005em}
+.ex .tr{font-size:13.5px;color:var(--muted)}
+.ex .nt{font-size:12.5px;color:var(--muted);border-top:1px dashed var(--line);padding-top:7px;margin-top:3px;line-height:1.55}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:5px 10px;font-size:14px}
+.kv dt{font-weight:700;color:var(--primary)}
+.kv dd{margin:0;color:var(--muted)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:330px}
+th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line)}
+th{font-family:var(--font-d);font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);background:var(--surface-2)}
+tr:last-child td{border-bottom:none}
+td b{color:var(--primary)}
+</style>
+<style>
+/* ---- konu kartı listesi ---- */
+.toprow{display:flex;gap:11px;align-items:center;width:100%;text-align:left;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.toprow:hover{border-color:var(--primary)}
+.tnum{width:32px;height:32px;border-radius:9px;background:var(--surface-2);display:grid;place-items:center;font-family:var(--font-d);font-size:12.5px;font-weight:700;color:var(--muted);flex:none}
+.toprow.done .tnum{background:var(--ok-soft);color:var(--ok)}
+.toprow.started .tnum{background:var(--accent-soft);color:var(--accent)}
+.tmain{flex:1;min-width:0}
+.tname{font-family:var(--font-d);font-weight:600;font-size:14.5px;line-height:1.35}
+.tmeta{font-size:11.5px;color:var(--muted);margin-top:2px;display:flex;gap:9px;flex-wrap:wrap}
+.tick{width:16px;height:16px;flex:none;stroke:var(--ok);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.sechead{display:flex;align-items:baseline;gap:9px;margin:18px 0 9px}
+.sechead:first-child{margin-top:4px}
+.sechead h3{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.sechead .ct{font-size:11.5px;color:var(--muted);margin-left:auto}
+
+/* ---- arama ---- */
+.search{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 12px}
+.search input{flex:1;min-width:0;border:none;background:none;padding:11px 0;font:inherit;font-size:14.5px;color:var(--ink)}
+.search input:focus{outline:none}
+.search svg{width:17px;height:17px;stroke:var(--muted);fill:none;stroke-width:2;flex:none}
+
+/* ---- alıştırma ---- */
+.qcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:15px;display:flex;flex-direction:column;gap:13px}
+.qtype{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.qtext{font-family:var(--font-d);font-size:16px;font-weight:600;line-height:1.45}
+.qtext .blank{color:var(--primary);border-bottom:2px solid var(--primary);padding:0 10px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;align-items:flex-start;gap:10px;text-align:left;width:100%;padding:12px;border-radius:11px;border:1.5px solid var(--line);background:var(--surface);font-size:14.5px;line-height:1.45;transition:background .15s,border-color .15s}
+.opt:hover:not(:disabled){border-color:var(--primary)}
+.opt .ltr{width:21px;height:21px;border-radius:6px;background:var(--surface-2);display:grid;place-items:center;font-size:11.5px;font-weight:700;color:var(--muted);flex:none;margin-top:1px}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.right .ltr{background:var(--ok);color:#fff}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt.wrong .ltr{background:var(--bad);color:#fff}
+.opt:disabled{cursor:default}
+.answerbox{display:flex;flex-direction:column;gap:9px}
+.answerbox input{width:100%;padding:12px;border-radius:11px;border:1.5px solid var(--line);background:var(--surface-2);font:inherit;font-size:15px;color:var(--ink)}
+.answerbox input:focus{outline:none;border-color:var(--primary);background:var(--surface)}
+.fb{border-radius:11px;padding:11px 12px;font-size:13.5px;line-height:1.6;display:flex;flex-direction:column;gap:6px}
+.fb.good{background:var(--ok-soft);color:var(--ok)}
+.fb.bad{background:var(--bad-soft);color:var(--bad)}
+.fb.neutral{background:var(--surface-2);color:var(--ink)}
+.fb .key{font-family:var(--font-d);font-weight:700;color:var(--ink);font-size:14.5px}
+.fb .why{color:var(--muted);font-size:13px}
+.qprog{display:flex;gap:4px;align-items:center}
+.qprog i{flex:1;height:4px;border-radius:999px;background:var(--surface-2)}
+.qprog i.on{background:var(--primary)}
+.qprog i.miss{background:var(--bad)}
+.selfcheck{display:flex;gap:8px}
+.selfcheck .btn{padding:10px}
+
+/* video kartı */
+.videocard{background:var(--primary-soft);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:11px}
+.videocard .vt{font-family:var(--font-d);font-weight:600;font-size:14.5px;color:var(--primary-ink);display:flex;gap:9px;align-items:center}
+.videocard .vt svg{width:19px;height:19px;stroke:var(--primary-ink);fill:none;stroke-width:1.9;flex:none}
+.videocard p{font-size:13.5px;color:var(--primary-ink);opacity:.85;line-height:1.6}
+.vbtn{display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:11px;background:var(--surface);font-weight:700;font-size:14px;color:var(--primary-ink);border:1.5px solid transparent}
+.vbtn.on{background:transparent;border-color:var(--primary);color:var(--primary-ink)}
+.vbtn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+
+/* segment */
+.seg{display:flex;background:var(--surface-2);border-radius:11px;padding:3px;gap:3px}
+.seg button{flex:1;padding:8px;border-radius:9px;font-size:13.5px;font-weight:600;color:var(--muted)}
+.seg button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+/* halka */
+.ring{display:flex;align-items:center;gap:14px}
+.ring svg{width:66px;height:66px;flex:none;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:7;stroke-linecap:round}
+.ring .track{stroke:var(--surface-2)}
+.ring .val{stroke:var(--primary);transition:stroke-dashoffset .6s ease}
+.ringnum{font-family:var(--font-d);font-size:24px;font-weight:700;line-height:1}
+
+/* istatistik */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
+.stat .n{font-family:var(--font-d);font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat .l{font-size:11.5px;color:var(--muted);margin-top:3px}
+
+.empty{text-align:center;padding:38px 16px;color:var(--muted);font-size:14px}
+.hero{display:flex;flex-direction:column;gap:4px}
+.hero h1{font-size:25px;font-weight:700;letter-spacing:-.02em}
+.hero .sub{font-size:13.5px;color:var(--muted)}
+.fine{font-size:11.5px;color:var(--muted);line-height:1.6;text-align:center;padding:14px 0}
+</style>
+
+<div id="app">
+  <header class="topbar"><div class="topbar-in gut" id="topbar"></div></header>
+  <main id="view" class="screen gut"></main>
+  <div class="pad-bottom"></div>
+  <nav class="tabbar" id="tabbar"></nav>
+</div>
+<script>
+/* Ek Mantığı Kitabı — konu verileri. Metinler kitabın kendi anlatımından alınmıştır. */
+const SECTIONS = [
+  {id:'s1', name:'Temel Mantık', desc:'Cümle yapısı, özne, fiil ve ekler'},
+  {id:'s2', name:'Cümle Uzatma', desc:'Bağlaç, çağrışım, relative ve noun clause'},
+  {id:'s3', name:'Zamanlar', desc:'Tenslerin tek kuralı: yardımcı fiiller'},
+  {id:'s4', name:'Modals ve If', desc:'Duygusal ekler ve koşul cümleleri'},
+  {id:'s5', name:'Passive', desc:'“-ıl / -il” ekinin bütün halleri'}
+];
+
+const TOPICS = [
+/* ============ S1 ============ */
+{
+id:'onsoz', s:'s1', title:'Ön Söz', tag:'Giriş',
+sum:'Kitabın amacı ve nasıl çalışman gerektiği.',
+blocks:[
+['p','Bir dil öğrenmek yalnızca kelimeleri ve kuralları ezberlemek değildir; o dilin mantığını kavramaktır. İngilizce, yapısı itibarıyla Türkçeden oldukça farklı bir dildir ve bu farklılık özellikle cümle kurarken eklerin, bağlaçların ve zaman yapılarının doğru kullanımını kritik hale getirir.'],
+['p','“Anlıyorum ama konuşamıyorum” sorununun temelinde İngilizcenin yapısal mantığını tam olarak kavrayamamak yatar. Bu kitap size bu mantığı adım adım öğretmeyi hedefliyor. Özne–fiil–ek–isim yapısı gibi İngilizcenin değişmez kurallarını öğrenerek uzun ve karmaşık cümleleri bile rahatlıkla kurabilir ve çevirebilir hâle geleceksiniz.'],
+['p','Kitabın en önemli özelliği Türkçe düşünme alışkanlığınızı İngilizceye uyarlamanızı sağlamasıdır. Eklerin nasıl kullanılacağını, bağlaçların cümle içindeki işlevini ve zaman yapılarının mantığını öğrenirken aslında İngilizce düşünmeye başladığınızı fark edeceksiniz.'],
+['r','Kitabı okurken her konu anlatımı bittiğinde ödev videolarını <b>MUTLAKA</b> izlemelisiniz; çünkü yazarak bazı şeyler tam ifade edilemeyebilir. Hangi konuyu okuduysanız o konunun başlığını diğer dosyadaki başlıkla eşleştirmelisiniz ki karışıklık olmasın.'],
+['p','Şunu da belirtmeliyim: Başta anlatacağım konular en temelden en zora doğru ilerliyor. Bu yüzden sizi asıl geliştirecek konular “isimleştirme — relative clause — passive — noun clause” konularının mantığını anlamanızdır. Bu konuları anlayabilmek için sırasıyla diğer konuları da anlatıyor olacağım; o yüzden konuları atlamadan, sabırlı ve sistemli bir şekilde okumalısınız ki kafanız karışmasın.'],
+['p','Yolculuğunuza başlarken sabırlı olmanızı ve her adımda öğrendiklerinizi pratik etmenizi öneririm. Unutmayın, dil öğrenmek bir maratondur; adım adım ilerledikçe başarıya ulaşırsınız. Keyifli öğrenmeler dilerim.']
+], ex:[]
+},
+{
+id:'cumle-yapisi', s:'s1', title:'Cümle Yapısı', tag:'Temel',
+sum:'İngilizcenin asla değişmeyen kalıbı.',
+blocks:[
+['f',['Özne','fiil','ek','isim','………','isim']],
+['p','Yukarıda yazdığım yapı, İngilizcenin asla değişmeyecek olan yapılarından birisidir. Bu yapıyı öğrendikten sonra, aslında İngilizcenin ne kadar basit bir dil olduğunu göreceksiniz. “Anlıyorum ama konuşamıyorum.” sorununun en büyük sebebi, bu yapıya tam anlamıyla hâkim olamamaktan kaynaklanır.'],
+['p','Bu yapının en önemli kısmı “ekler”dir; çünkü aslında biz İngilizcede fiilleri ve özneleri yazabiliyoruz. Bunun sebebi, bu yapının lise ve hazırlık sınıflarında sürekli öğretilmesi ve öğrencilerin bunun dışına çıkamamasıdır.'],
+['p','Örneğin, bu kitaba sahip olan herkes zaten “I go”, “I went” veya “I read”, “I am reading” cümlelerini kurabiliyordur. Çünkü bu yapılar dışında, eğitim sistemimizde cümle uzatmaya dair bir mantık anlatılmıyor. Sizi konuşturacak en önemli mantık ise “ekleri” kullanmayı bilmektir.'],
+['p','Örneğin “Ben arkadaşlarımla evde oturuyorum.” cümlesini çevirin desem, belki birkaçınız bütün kelimelerin anlamlarını bilmesine rağmen yanlış çevirecektir. Fakat burada “arkadaşı – friend”, “evi – home”, “oturmak eylemini – sit” olarak bilsek de, “ile”, “-m”, “-de/-da” eklerini doğru bağlayamazsak bu cümleyi kuramayız.'],
+['r','Bu yapıyı anlatırken <b>mantığını anlamaya odaklanın</b>; çünkü şu an anlatmamış olduğum bazı konuları da kullanıyor olacağım. Ancak onlara takılmadan sadece neyi anlatmak istediğime odaklanın.'],
+['p','Hazırsanız, bu yapıda yer alan özne nedir, fiil nedir, en yaygın ekler hangileridir ve isimleştirmeler nedir, bunları tek tek detaylı anlatalım.']
+],
+ex:[
+{t:'mc',q:'İngilizcenin değişmeyen cümle yapısı hangisidir?',o:['Özne + isim + ek + fiil','Özne + fiil + ek + isim','Fiil + özne + isim + ek','Ek + özne + fiil + isim'],a:1,w:'Türkçe “özne – isim – ek – fiil” olarak ilerler; İngilizce ise tam tersi: “Özne – fiil – ek – isim”.'},
+{t:'mc',q:'Kitaba göre “Anlıyorum ama konuşamıyorum” sorununun en büyük sebebi nedir?',o:['Kelime bilmemek','Telaffuzun kötü olması','Cümle yapısına ve eklere hâkim olamamak','Çok az kitap okumak'],a:2,w:'Sorunun temelinde İngilizcenin yapısal mantığını, yani özne–fiil–ek–isim yapısını ve ekleri tam kavrayamamak yatar.'},
+{t:'mc',q:'Bu yapının en önemli kısmı kitaba göre hangisidir?',o:['Ekler','Özneler','Sıfatlar','Noktalama'],a:0,w:'Fiilleri ve özneleri zaten yazabiliyoruz; sizi konuşturacak asıl mantık ekleri kullanmayı bilmektir.'},
+{t:'tr',q:'Ben arkadaşlarımla evde oturuyorum.',a:'I am sitting at home with my friends.',w:'“-m” → I, “oturuyorum” → am sitting, “evde” → at home, “ile” → with, “arkadaşlarım” → my friends. Ekleri bağlayamazsak cümleyi kuramayız.'}
+]
+},
+{
+id:'ozne', s:'s1', title:'Özne', tag:'Temel',
+sum:'7 özne ve tekil–çoğul ayrımı.',
+blocks:[
+['p','İngilizcede 7 tane özne vardır ve bunların anlamlarını her ne kadar bilsek de, asıl bilmemiz gereken şey bunları <b>tekil ve çoğul</b> olarak ayırmak zorunda olduğumuzdur. Çünkü birazdan anlatacağım fiil grameri, bu öznelerin tekil veya çoğul olmasına göre şekillenecektir.'],
+['dl',[['I','ben — (-m)'],['You','sen — (-n)'],['We','biz — (-mız/-miz)'],['They','onlar — (-lar/-ler)'],['He','o (erkek için)'],['She','o (kız için)'],['It','o (cansız varlıklar, hayvanlar ve öznesiz cümle başlangıçları için)']]],
+['r','<b>I - you - we - they</b> çoğul öznelerken, <b>he - she - it</b> tekil öznedir.'],
+['p','Cümlelere bu öznelerle başlamak zorundayız, fakat bazı istisnalar olabilir. Örneğin, he öznesi yerine özel isimler de kullanılabilir:'],
+['e','He is going to work.','O işe gidiyor.',''],
+['e','Ahmet is going to work.','Ahmet işe gidiyor.','Burada “kim işe gidiyor?” sorusunun cevabı “o” yani “Ahmet” olduğu için, özne olarak Ahmet kullanılmıştır.'],
+['e','She is drinking coffee.','O kahve içiyor.',''],
+['e','Ayşe is drinking coffee.','Ayşe kahve içiyor.','Her zaman “she” öznesiyle başlamak zorunda değiliz; eğer “she”ye gönderme yapacak bir özel isim varsa onunla başlarız.'],
+['p','Şimdi biraz “it” öznesine bakalım. Eğer “it” öznesini “cat” ismiyle birleştirirsem, cümle başlangıcım “it” ile olmayacaktır; çünkü bir hayvan ismiyle başlıyorum.'],
+['e','The cat is sleeping now.','Kedi şu an uyuyor.','Hayvanlarda “it” kullanmak gerekse de, “it” gizli özne olarak kullanılır ve “cat” isminin içinde barınır. Bu yüzden cümlelerde bu isimlerle başlarız.']
+],
+ex:[
+{t:'mc',q:'Aşağıdakilerden hangisi kitaba göre tekil öznedir?',o:['you','we','she','they'],a:2,w:'he – she – it tekil; I – you – we – they çoğul kabul edilir.'},
+{t:'mc',q:'“It” öznesi hangi durumlar için kullanılır?',o:['Sadece hayvanlar','Cansız varlıklar, hayvanlar ve öznesiz cümle başlangıçları','Sadece insanlar','Sadece çoğul isimler'],a:1,w:'Kitapta “It” — o (cansız varlıklar, hayvanlar ve öznesiz cümle başlangıçları için) olarak verilir.'},
+{t:'fill',q:'The cat ___ sleeping now.',a:'is',w:'“Cat” tekil bir isim olduğu için tekil özne fiili “is” gelir. “It” burada gizli öznedir.'},
+{t:'mc',q:'“Ayşe is drinking coffee.” cümlesinde neden “she” yazılmamıştır?',o:['Yanlış bir cümledir','“She”ye gönderme yapan bir özel isim olduğu için','Kahve içmek özne istemez','Ayşe çoğul olduğu için'],a:1,w:'“She”ye gönderme yapacak bir özel isim varsa cümleye onunla başlarız.'}
+]
+},
+{
+id:'cogullastirma', s:'s1', title:'İsimleri Çoğullaştırma', tag:'Temel',
+sum:'“-s” takısı ve çoğul özne mantığı.',
+blocks:[
+['p','Herhangi bir ismin sonuna “-s” takısı koyarsanız, o ismi çoğullaştırarak “-lar/-ler” anlamı kazandırırsınız. Örneğin, “cat” isminin sonuna “s” takısı koyarsam bu “cats” yani “kediler” anlamına gelir.'],
+['p','Çoğul isimler otomatik olarak çoğul özne olarak kabul edilir. Her ne kadar “it” öznesi “kediye” gönderme yapsa da, artık “cats” dediğimde “kediler”, yani “onlar” anlamı oluşur ve “they” öznesine gönderme yapar.'],
+['e','Cats are sleeping.','Kediler uyuyor.','Fark ettiyseniz, fiilim is’den are’a dönüştü; çünkü çoğul özne olarak yazdık.'],
+['p','Örnek olarak, özel isimleri yani Ahmet – Ayşe – Fatma gibi isimleri çoğul bir şekilde kullanabiliyoruz. Örneğin, her ne kadar Ahmet “he” öznesine gönderme yapsa da, şöyle bir cümlede çoğul olarak yazılmalıdır:'],
+['e','Ahmet and Ayşe are playing football.','Ahmet ve Ayşe futbol oynuyor.','“Onlar – they” göndermesi olduğu için fiilim de otomatik olarak çoğul özne mantığına göre yazılmalıdır.'],
+['r','Özneler konusunda çok zor bir yapı yok; sadece <b>tekil ve çoğul</b> kısımlara dikkat etmelisiniz.']
+],
+ex:[
+{t:'fill',q:'Cats ___ sleeping.',a:'are',w:'“Cats” çoğul isim → çoğul özne (they) → are.'},
+{t:'fill',q:'Ahmet and Ayşe ___ playing football.',a:'are',w:'İki isim birleştiğinde “they” göndermesi olur, fiil çoğula göre yazılır.'},
+{t:'mc',q:'“Cats” dediğimizde hangi özneye gönderme yapılır?',o:['it','he','they','we'],a:2,w:'Çoğul isimler otomatik olarak çoğul özne kabul edilir ve “they” öznesine gönderme yapar.'},
+{t:'tr',q:'Kediler uyuyor.',a:'Cats are sleeping.',w:'Çoğul isim → çoğul fiil “are” + isimleştirilmiş “sleeping”.'}
+]
+},
+{
+id:'tobe', s:'s1', title:'To Be Fiilleri', tag:'Fiil',
+sum:'am – is – are ve isim cümlecikleri.',
+blocks:[
+['p','İngilizcede iki tane fiil yapısı vardır: <b>“To be” fiilleri</b> ve <b>“Action” fiilleri</b>.'],
+['p','“To be” fiillerinin Türkçede birebir bir karşılığı olmamakla birlikte, mantığını anlamanız gereken fiillerdir. Bunları am – is – are olarak ayırıyoruz. Bu fiillerin tam Türkçe karşılığı olmasa da şu şekilde çevirebiliriz: “-dır, -dir”, “bulunma”, “görünme” gibi anlamlara gelir.'],
+['dl',[['is','tekil özneler'],['are','çoğul özneler'],['am','sadece “I” öznesine özeldir']]],
+['p','Bu fiil yapılarını kullanırken, cümle başında kullandığımız öznelerin herhangi bir eylem yapmadığını, pasif durumda olduklarını bilmemiz gerekir. Aynı zamanda “to be” fiillerini <b>isim cümlecikleri</b> olarak öğrenmemiz de önemlidir.'],
+['h','İsim cümlecikleri nedir?'],
+['r','Eğer Türkçede yüklemimiz bir <b>isim</b> ile bitiyorsa, orada gizli bir “to be” fiili vardır.'],
+['e','I am happy.','Ben mutluyum.','Yüklemim bir sıfatla bitmiş. Bu yüzden özneden sonra “to be” fiilini kullanmam gerekir. “I” öznesi kullandığımız için alacağı fiil yapısı “am” olacaktır.'],
+['e','She is in the kitchen.','O mutfakta.','Türkçesinde “mutfakta bulunuyor”, “mutfaktadır” ya da “mutfakta görünüyor” diyebildiğimiz için bu anlamları “is” fiiline yükleyebiliriz. Bunu çözmenin en basit yolu: Eğer yüklemim isimle bitiyorsa “to be” fiilini kullanmak zorundayım.'],
+['e','They are handsome.','Onlar yakışıklı.','Yüklem bir sıfatla bittiği için, çoğul özneye uygun olarak “are” fiilini kullanıyoruz.']
+],
+ex:[
+{t:'fill',q:'I ___ happy.',a:'am',w:'“am” sadece “I” öznesine özeldir.'},
+{t:'fill',q:'They ___ handsome.',a:'are',w:'Yüklem sıfatla bitiyor → to be; özne çoğul → are.'},
+{t:'fill',q:'She ___ in the kitchen.',a:'is',w:'Yüklem isimle bitiyor → to be; özne tekil → is.'},
+{t:'mc',q:'“To be” fiilleri Türkçede hangi anlamlara gelir?',o:['“-mak / -mek”','“-dır, -dir”, bulunma, görünme','“-arak / -erek”','“-den sonra”'],a:1,w:'Tam karşılığı olmasa da “-dır/-dir”, “bulunma”, “görünme” anlamlarıyla çevrilebilir.'},
+{t:'mc',q:'Yüklemimiz bir isim veya sıfatla bitiyorsa ne kullanmalıyız?',o:['Action fiil','To be fiili','Hiçbir fiil','İki fiil birden'],a:1,w:'Yüklem isimle bitiyorsa orada gizli bir “to be” fiili vardır.'}
+]
+},
+{
+id:'action', s:'s1', title:'Action Fiilleri', tag:'Fiil',
+sum:'Sonu “-mak / -mek” ile biten bütün eylemler.',
+blocks:[
+['p','Bu fiil yapısı aslında çok basittir; çünkü Türkçede sonu <b>-mak / -mek</b> ile biten bütün eylem fiilleri bu gruba girer. Örneğin: go – gitmek, come – gelmek, drink – içmek vb.'],
+['r','Eğer yüklemim “mak / mek”li bir fiille bitiyorsa <b>sadece action fiil</b> kullanmak zorundayım. “To be” fiillerinden farkı, bu özneler artık aktiftir; bir eylem yaparlar.'],
+['e','I drink coffee.','Ben kahve içerim.','Yüklemim doğrudan “içmek” fiilidir, bu yüzden İngilizcede karşılığı olan fiili yazıyorum.'],
+['e','He comes to home.','O eve gelir.','Yüklem “gelmek” olduğu için action fiil “come” kullanılır. Buradaki “s” takısını present simple konusunda açıklayacağım.'],
+['e','They love us.','Onlar bizi seviyor.','“Sevmek” fiiliyle bittiği için sadece o fiilin karşılığını yazıyoruz.']
+],
+ex:[
+{t:'mc',q:'Hangi durumda action fiil kullanırız?',o:['Yüklem isimle bitince','Yüklem sıfatla bitince','Yüklem “-mak / -mek”li bir fiille bitince','Her zaman'],a:2,w:'Türkçede sonu -mak/-mek ile biten bütün eylem fiilleri action gruptadır.'},
+{t:'tr',q:'Ben kahve içerim.',a:'I drink coffee.',w:'Yüklem “içmek” → action fiil; to be kullanılmaz.'},
+{t:'tr',q:'Onlar bizi seviyor.',a:'They love us.',w:'“Sevmek” fiiliyle bittiği için sadece o fiilin karşılığı yazılır.'},
+{t:'mc',q:'Action fiil kullanılan cümlelerde özne nasıldır?',o:['Pasiftir, eylem yapmaz','Aktiftir, bir eylem yapar','Her zaman çoğuldur','Her zaman gizlidir'],a:1,w:'To be fiillerinden farkı, bu öznelerin aktif olması ve yaptıkları eylemi vurgulamasıdır.'}
+]
+},
+{
+id:'ozet-fiil', s:'s1', title:'Özet: İki Cambaz Oynamaz', tag:'Kural',
+sum:'Bir cümlede iki fiil yan yana gelmez.',
+blocks:[
+['p','Kısaca özetlemek gerekirse, öğrencilerin sık yaptığı hatalardan biri iki fiili yan yana getirmektir.'],
+['e','I am go to school.','(Yanlış) Okula giderim.','Bu çeviriyi yapmak isteyen bir öğrenci “I” dedikten sonra otomatik olarak “am” fiilini koyuyor, ardından “go” fiilini de ekleyerek iki fiili yan yana getirmiş oluyor. Ancak cümlenin sonunda gitmek eylemi bulunduğu için “am” kullanmamalıyız.'],
+['r','Unutmayın: <b>Bir cümlede iki cambaz oynamaz.</b> İngilizce, her şeyden bir tane isteyen bir yapıya sahiptir.']
+],
+ex:[
+{t:'mc',q:'“Okula giderim.” cümlesinin doğru çevirisi hangisidir?',o:['I am go to school.','I go to school.','I am going school.','I am to school go.'],a:1,w:'Cümlenin sonunda gitmek eylemi var; o yüzden “am” kullanmıyoruz. Bir cümlede iki fiil yan yana gelmez.'},
+{t:'mc',q:'“I am go” yapısı neden yanlıştır?',o:['“am” yanlış yazılmış','İki fiil yan yana gelmiş','Özne eksik','“go” çoğul değil'],a:1,w:'İngilizce her şeyden bir tane ister: bir cümlede iki cambaz oynamaz.'}
+]
+},
+{
+id:'ceviri-mantigi', s:'s1', title:'Çeviri Mantığı: Sondan Başla', tag:'Yöntem',
+sum:'Türkçenin sonundan başlayarak çevirmek.',
+blocks:[
+['p','Türkçe, sondan eklemeli bir dil olduğu için bizim cümle kurma yapımız her zaman şu şekildedir: <b>“Özne – isim – ek – fiil”</b>. İngilizcede ise tam tersi bir yapı vardır: <b>“Özne – fiil – ek – isim.”</b>'],
+['r','Bu yüzden ne okursanız okuyun, ne çevirirseniz çevirin, her zaman <b>Türkçenin en sonundan</b> başlamanız gerekiyor ki İngilizcenin yapısına uydurabilesiniz. Cümleyi sondan çevirmemizin tek sebebi, Türkçede sona gelen ekleri İngilizcede ilk söyleyebilmemizdir.'],
+['h','Örnek çözüm'],
+['e','We go by car to the school from the home with our friends.','Arkadaşlarımızla evden okula arabayla gideriz.','Sondan doğru çeviri yaparken ilk yükleme bakarız: “Gideriz” — “Kim gidiyor?” “–ız, –iz” ekinden we öznesi olduğunu anladım ve cümleme başladım.'],
+['l',['go → gitmek','by → ile / la / le','car → araba','to → a / e','school → okul','from → dan / den','home → ev','with → ile / la / le','our → mız / miz','friends → arkadaşlar']],
+['p','Bu çeviri mantığı hiçbir şekilde değişmeyecektir ve uzun cümleleri de bu şekilde çevirebilir, kurabilirsiniz.']
+],
+ex:[
+{t:'mc',q:'Çeviriye nereden başlamalıyız?',o:['Türkçe cümlenin başından','Türkçe cümlenin sonundan (yüklemden)','Ortadan','İngilizce cümlenin sonundan'],a:1,w:'Türkçede sona gelen ekleri İngilizcede ilk söyleyebilmek için her zaman sondan başlarız.'},
+{t:'tr',q:'Arkadaşlarımızla evden okula arabayla gideriz.',a:'We go by car to the school from the home with our friends.',w:'Yüklem: gideriz → we go. Sonra sola doğru: arabayla → by car, okula → to the school, evden → from the home, arkadaşlarımızla → with our friends.'},
+{t:'tr',q:'Arkadaşlarımla evden okula gidiyorum.',a:'I am going to the school from the home with my friends.',w:'“-um” → I, “gidiyorum” → am going, “okula” → to the school, “evden” → from the home, “arkadaşlarımla” → with my friends.'},
+{t:'tr',q:'Sınıfta öğretmeni dinleriz.',a:'We listen to the teacher in the class.',w:'Yüklem: dinleriz → we listen. “Öğretmeni” → to the teacher, “sınıfta” → in the class.'}
+]
+},
+{
+id:'ekler-edatlar', s:'s1', title:'En Çok Kullanılan Ekler ve Edatlar', tag:'Ek',
+sum:'with, by, to, from, in, on, at, for, about.',
+blocks:[
+['h','With → (ile, -la, -le)'],
+['p','Sadece nesne, canlı isimler ile kullanılır.'],
+['e','I am with you.','Seninleyim.',''],
+['e','I open the door with a key.','Anahtarla kapıyı açarım.',''],
+['h','By → (ile, -la, -le)'],
+['p','Aynı anlama gelir, ancak sadece araçlarla kullanılır.'],
+['e','I come by car.','Arabayla gelirim.',''],
+['e','I travel by plane.','Uçakla seyahat ederim.',''],
+['h','To → (a, e)'],
+['p','Yönelme anlamı katar. İsimlerle kullanılır.'],
+['e','I go to the school.','Okula giderim.',''],
+['e','I come to your home.','Evine gelirim.',''],
+['h','From → (dan, den, tan, ten)'],
+['p','Çıkma anlamı katar.'],
+['e','I come from the school.','Okuldan gelirim.',''],
+['e','They take a knife from the kitchen.','Mutfaktan bıçak alırlar.',''],
+['h','In → (de, da, ta, te)'],
+['p','Bulunma hali bildiren bir edattır. Fakat bu eki “içinde” anlamını düşünerek değil, yalnızca “de-da” olarak öğrenmelisiniz. “Evin içindeyim” ile “Evdeyim” cümlelerinden hangisini daha sık kullanırız? Tabii ki “Evdeyim.” Buradaki “de” takısı zaten “evin içinde” olduğumuzu anlatıyor.'],
+['e','I am in the house.','Evdeyim.',''],
+['e','We eat food in the kitchen.','Mutfakta yemek yeriz.',''],
+['h','On → (de, da, ta, te) + “üstünde”'],
+['p','“in” mantığıyla benzer düşünülmelidir. “Sandalyenin üzerindeyim” yerine kafamız otomatik olarak “Sandalyedeyim.” der; bu yüzden buradaki “de-da” anlamını “üstünde” olarak düşünmeli ve “on” kullanmalıyız.'],
+['e','I am on the chair.','Sandalyedeyim.',''],
+['e','I sit on the sofa.','Koltukta otururum.',''],
+['h','At → (de, da, ta, te)'],
+['p','Tekrar bulunma hali bildirir. Fakat “in” ve “on” gibi içinde ya da üstünde anlamı yoktur. Buna rağmen, özel alanlar, saatler ve ne içinde ne üstünde olduğumuz durumlarda kullanılır.'],
+['e','At seven o’clock.','Saat yedide.','“Her saatte ‘de-da’ anlamı varsa, bunlar her zaman at ile kullanılır.”'],
+['e','I am at home.','Evdeyim.','Home, kendine ait olan ev, yani özel alan anlamındadır. Ancak house kendine ait olmayan bir evdir; komşunun evi ya da herhangi bir ev olabilir → I am in the house.'],
+['e','I play football at the garden.','Bahçede futbol oynarım.','Ne içinde ne üstünde olduğumuz için at kullanılır.'],
+['e','I walk at the street.','Sokakta yürürüm.','Sokağın belli bir bölümünde olduğumuzu vurgularız.'],
+['h','For → (için)'],
+['p','Amaç belirten bir edattır. Kendisinden sonra bir isim gelmesi gerektiğini unutmayalım.'],
+['e','I live for you.','Senin için yaşarım.',''],
+['e','I work for money.','Para için çalışırım.',''],
+['h','About → (hakkında / neredeyse)'],
+['e','I know something about math.','Matematik hakkında bir şeyler biliyorum.','“Math” bir isim olduğundan “hakkında” anlamı çıkar.'],
+['e','I study about two hours.','Neredeyse iki saat ders çalışırım.','Bir zaman ifadesiyle kullanılırsa “neredeyse” anlamı katar.']
+],
+ex:[
+{t:'mc',q:'“Arabayla gelirim.” — hangi edat kullanılır?',o:['with','by','in','at'],a:1,w:'By → (ile, -la, -le) anlamına gelir ve sadece araçlarla kullanılır.'},
+{t:'mc',q:'“Anahtarla kapıyı açarım.” — hangi edat kullanılır?',o:['by','with','for','from'],a:1,w:'With, nesne ve canlı isimlerle kullanılır: I open the door with a key.'},
+{t:'fill',q:'I am ___ the chair. (Sandalyedeyim.)',a:'on',w:'“de-da” anlamını “üstünde” olarak düşündüğümüz için “on” kullanılır.'},
+{t:'fill',q:'I am ___ home. (Evdeyim.)',a:'at',w:'Home kendine ait özel alandır, özel alanlarda “at” kullanılır.'},
+{t:'fill',q:'We eat food ___ the kitchen.',a:'in',w:'Mutfakta bulunma, içinde olma durumu → in.'},
+{t:'fill',q:'___ seven o’clock. (Saat yedide.)',a:'at',w:'Her saatte “de-da” anlamı varsa, bunlar her zaman at ile kullanılır.'},
+{t:'mc',q:'“I study about two hours.” cümlesinde “about” ne anlama gelir?',o:['hakkında','neredeyse','için','ile'],a:1,w:'Bir zaman ifadesiyle kullanıldığında “about” neredeyse anlamı katar.'},
+{t:'tr',q:'Para için çalışırım.',a:'I work for money.',w:'“İçin”den sonra bir isim (money) geldiği için amaç belirten edat “for” olur.'},
+{t:'tr',q:'Mutfaktan bıçak alırlar.',a:'They take a knife from the kitchen.',w:'“-dan/-den” çıkma anlamı → from.'}
+]
+},
+{
+id:'sahiplik', s:'s1', title:'Sahiplik Ekleri', tag:'Ek',
+sum:'my, your, our, their, his, her, its.',
+blocks:[
+['p','Aşağıda yazmış olduğum eklerin çevirilerini ne desem herkes “benim, senin, bizim, onların, onun” olarak söyleyecektir. Fakat yukarıda anlattığım “in-on” mantığına göre bunların uzun hallerini aslında Türkçemizde kullanmıyoruz ve daha kısa hallerini kullanıyoruz: “Benim arabam” değil, “Arabam”.'],
+['r','Türkçemiz her zaman ekleri <b>kısaltmaya dayalı</b> konuşmadır. Bu yüzden bu ekleri kısa ek karşılıklarıyla öğrenirsek çeviri yapmak basitleşir.'],
+['dl',[['My – “m”','arabam → my car'],['Your – “n”','araban → your car'],['Our – “mız”','arabamız → our car'],['Their – “ları”','arabaları → their car'],['His (erkek) – “sı/si”','arabası → his car'],['Her (kız) – “sı/si”','arabası → her car'],['Its (hayvan-cansız) – “u/ü/ı/i”','kuyruğu → its tail']]]
+],
+ex:[
+{t:'fill',q:'arabamız → ___ car',a:'our',w:'“-mız/-miz” eki our ile karşılanır.'},
+{t:'fill',q:'kuyruğu (kedinin) → ___ tail',a:'its',w:'Hayvan ve cansızlarda “u/ü/ı/i” eki its olur.'},
+{t:'mc',q:'“Arabaları” hangisidir?',o:['his car','their car','our car','your car'],a:1,w:'“-ları” eki their ile karşılanır.'},
+{t:'tr',q:'Köpekleriyle mutlular.',a:'They are happy with their dogs.',w:'Yüklem sıfatla bitiyor → to be (are). “ile” → with, “köpekleri” → their dogs.'},
+{t:'tr',q:'Arabalarıyla pikniğe giderler.',a:'They go to the picnic by their car.',w:'Yüklem: giderler → they go. “Pikniğe” → to the picnic, “arabalarıyla” (araç) → by their car.'}
+]
+},
+{
+id:'isimlestirme-to', s:'s1', title:'İsimleştirme: “To”', tag:'İsimleştirme',
+sum:'(mak için / ma-me) — fiilden önce gelen ek.',
+blocks:[
+['p','Türkçede 13 adet isimleştirme (fiilimsiler) eki bulunur: “-ma, -ış, -mak, -an, -ası, -mez, -ar, -dik, -ecek, -miş…” Bu ekler, bir fiille geldiklerinde onu isme çevirmekle görevlidir.'],
+['r','Türkçede bu kadar çok olması sizi korkutmasın; İngilizcede sadece <b>iki tane</b> isimleştirme eki vardır: <b>“to”</b> ve <b>“-ing”</b>.'],
+['p','“To”, (mak için / ma-me) anlamlarına gelen, kendisinden sonra bir fiil ile kullanılan ve bu fiili cümle içinde isimleştirmeye yarayan bir ektir. Bu ek, cümledeki fiilin bir amacı olduğunu açıklar. Her fiilin yapılmadan önce bir amacı olabileceği için, bu yapı neredeyse her cümlede kullanılabilir.'],
+['e','You go to the library to study.','Ders çalışmak için kütüphaneye gidersin.','Cümlede iki fiil var: go ve study. İngilizce gramerde sadece bir fiil kullanılabilir; ortadaki “study” fiilini “to – (mak için)” ekiyle isimleştirmeliyim. Böylece asıl fiilim sadece “go” olur.'],
+['e','You go to the library study.','(Yanlış) “Ders çalışmak kütüphaneye gidersin.”','“Study” fiilini yalın halde yazdığım için iki fiil olmuş olur ve bu gramer hatasıdır.'],
+['e','I watch TV on the sofa to relax.','Rahatlamak için koltukta TV izlerim.','Ana fiil (yüklem) dışında gelen her fiili isimleştirmemiz gerekir. Bunu da “to” ile yapıyoruz.']
+],
+ex:[
+{t:'mc',q:'İngilizcede kaç tane isimleştirme eki vardır?',o:['13','2','7','5'],a:1,w:'Türkçede 13 fiilimsi eki vardır ama İngilizcede sadece “to” ve “-ing” vardır.'},
+{t:'mc',q:'“To” eki hangi anlamları verir?',o:['-arak / -erek','-den sonra','mak için / ma-me','-ken'],a:2,w:'“To” → (mak için / ma-me) anlamlarına gelir ve kendisinden sonra fiil alır.'},
+{t:'tr',q:'Ders çalışmak için kütüphaneye gidersin.',a:'You go to the library to study.',w:'Ana fiil go; ikinci fiil study “to” ile isimleştirilir.'},
+{t:'tr',q:'Kitap okumak için kütüphaneye gideriz.',a:'We go to the library to read a book.',w:'Yüklem: gideriz → we go. “Kütüphaneye” → to the library. “Okumak için” → to read.'},
+{t:'tr',q:'Sağlıklı olmak için koşarım.',a:'I run to be healthy.',w:'Ana fiil run; “olmak için” → to be, “sağlıklı” → healthy.'},
+{t:'tr',q:'Yeni insanlarla tanışmak için kafeye gidiyorum.',a:'I am going to the cafe to meet with new people.',w:'“-yorum” → am going; “kafeye” → to the cafe; “tanışmak için” → to meet; “yeni insanlarla” → with new people.'},
+{t:'tr',q:'Başka ülkeye gitmek için araba kiralarız.',a:'We rent a car to go to another country.',w:'Yüklem: kiralarız → we rent. “Araba” → a car. “Gitmek için” → to go. “Başka ülkeye” → to another country.'}
+]
+},
+{
+id:'isimlestirme-ing', s:'s1', title:'İsimleştirme: “-ing”', tag:'İsimleştirme',
+sum:'Sona gelen isimleştirme eki; “-yor” demek değildir.',
+blocks:[
+['p','“Ing” kullanımını sadece şimdiki zamanda gördüğünüzü düşünüyorum ve bunun anlamını “-yor” olarak algılıyorsunuz. Fakat “-ing” ekinin İngilizcede tek bir görevi vardır, o da <b>isimleştirmeden</b> başka bir şey değildir. Aynı zamanda “-yor” gibi bir anlamı da yoktur; biz onu Türkçeye çevirirken o şekilde çevirmek zorunda kaldığımız için öyle sanıyoruz.'],
+['h','“After” ve “Then” Mantığı'],
+['p','Size “after” kelimesinin anlamını sorsam çoğunuz “sonra” diyecektir. “Then” için de aynısını. “Okuldan sonra” derken “sonra”yı after alırsak, “okuldan” kısmındaki “-dan/-den” ekini from olarak vermemiz gerekir. O zaman cümle “After from school” olurdu.'],
+['r','Böyle bir çeviri görmediniz, değil mi? Çünkü <b>iki ek yan yana kullanılmaz</b> — tıpkı iki fiilin yan yana gelememesi gibi. Demek ki “after” = “-den sonra” anlamına gelir ve doğru çeviri “After school” olmalıdır.'],
+['h','“After Coming” Örneği'],
+['p','“Geldikten sonra” cümlesini çevirelim. “Gelmek” fiilini “come” olarak yazarsak cümlede iki fiil olur; fiili isimleştirmemiz gerekir. “to” koyarsak “After to come” olur — teknik olarak isimleşti, fakat iki ek yan yana geldiği için yine gramer hatasıdır.'],
+['r','O zaman “-ing” de bir isimleştirme ekidir; fakat <b>öne gelen</b> bir ek değildir. “-ing” ekini <b>sona gelen</b> bir ek olarak öğreniriz.'],
+['e','After coming.','Geldikten sonra.','Hem iki ek yan yana gelmemiş olur hem de “come” fiili artık isimleşmiş hale gelir. “After come” deseydik çevirisi “gelmekten sonra” olurdu.'],
+['h','“I am going” Yapısına Dikkat'],
+['p','“I am go” gibi bir yapı söyleyemeyiz. Eğer “-ing” konusunu biliyorsam, “go” fiiline “-ing” geldiğinde artık onun isimleştiğini anlamalıyım. O zaman “I am going” dediğimde benim ana fiilim “am” olur, çünkü “going” kısmı artık isimdir.'],
+['p','Öğrenciler genellikle “I going” der; çünkü “am/is/are” kelimelerinin bir anlamı olmadığını düşünürler. Fakat bu yapıda fiil yoktur, sadece özne ve isim vardır. İngilizce kurallı bir dil olduğu için fiil mutlaka olmalıdır, ve o fiil de “to be” fiilidir: <b>I am going.</b>'],
+['h','Diğer ekler'],
+['e','I listen to music while studying.','Ders çalışırken müzik dinlerim.','While = -ken. “Ders çalışmak” eylemi “-ken” eki ile birleştiği için ve ana fiilimiz müzik dinlemek olduğundan, onu “-ing” ile isimleştiriyoruz.'],
+['e','I study by listening to music.','Müzik dinleyerek ders çalışırım.','By = -arak / -erek. Ek ile bir fiil birleştiğinde “-ing” ile isimleştiriyoruz.'],
+['h','Uzun Cümle Örneği'],
+['e','I am sitting in the library to study by listening to music.','Müzik dinleyerek ders çalışmak için kütüphanede oturuyorum.','1) “-m” → I  2) oturuyorum → I am sitting  3) kütüphanede → in the library  4) ders çalışmak için → to study  5) müzik dinleyerek → by listening to music.'],
+['r','Yukarıda anlattığım kurallar hiçbir zaman değişmeyecektir. A2-B1-B2-C1 seviyelerindeki cümlelerde bile İngilizce kuralı birdir.']
+],
+ex:[
+{t:'mc',q:'“-ing” ekinin İngilizcedeki tek görevi nedir?',o:['“-yor” anlamı vermek','İsimleştirmek','Geçmiş zaman yapmak','Çoğullaştırmak'],a:1,w:'“-ing” ekinin tek görevi isimleştirmedir; “-yor” gibi bir anlamı yoktur.'},
+{t:'mc',q:'Neden “After to come” diyemeyiz?',o:['“come” düzensiz fiil olduğu için','İki ek yan yana kullanılamayacağı için','“after” fiil olduğu için','“to” sadece soruda kullanıldığı için'],a:1,w:'İki ek yan yana kullanılmaz; bu yüzden sona gelen isimleştirme eki “-ing” kullanılır: After coming.'},
+{t:'fill',q:'I listen to music while ___. (ders çalışırken — study)',a:'studying',w:'While = -ken; ek bir fiille birleştiğinde “-ing” ile isimleştirilir.'},
+{t:'fill',q:'I study by ___ to music. (müzik dinleyerek — listen)',a:'listening',w:'By = -arak/-erek; fiil “-ing” ile isimleşir.'},
+{t:'mc',q:'“I am going” cümlesinde ana fiil hangisidir?',o:['going','am','I','to'],a:1,w:'“going” isimleştiği için ana fiil “am” olur.'},
+{t:'tr',q:'Müzik dinleyerek ders çalışmak için kütüphanede oturuyorum.',a:'I am sitting in the library to study by listening to music.',w:'Sondan: -m → I, oturuyorum → am sitting, kütüphanede → in the library, ders çalışmak için → to study, müzik dinleyerek → by listening to music.'},
+{t:'tr',q:'Geldikten sonra.',a:'After coming.',w:'“-den sonra” → after; fiil sona gelen ekle isimleşir → coming.'}
+]
+},
+/* ============ S2 ============ */
+{
+id:'baglaclar', s:'s2', title:'Bağlaçlar', tag:'Cümle Uzatma',
+sum:'İki cümleciği birbirine bağlayan köprüler.',
+blocks:[
+['p','Yukarıda anlattığım yapı sadece tek bir cümle kurmaya dayalı olan eklerle uzatılmış cümlelerdi. Şimdi iki tane cümle yapma mantığına bakacağız. Bağlaç dediğimiz olay, iki “clause”, yani cümleciği bağlayan ve <b>köprü görevi</b> gören yapılardır.'],
+['p','Örneğin “I came to home” – “eve geldim” ifadesini okuduğunuzda mantıksız bir şey algılamıyorsunuz. Fakat bu cümleyi “when I came to home” – “eve geldiğimde” yaparsam, artık mantıksız gelecektir; çünkü kendisinden sonra bir cümle daha söyleme gereksinimi duyuyoruz.'],
+['r','BAĞLAÇLARIN KENDİ ANLAMI HER ZAMAN CÜMLENİN <b>ANA FİİLİ</b> NE İSE ONUNLA BİRLEŞİR VE CÜMLENİN BAŞINDA YAZILIR.'],
+['h','En çok kullanılan bağlaçlar'],
+['dl',[['When','dığında / dığı zaman'],['By the time','dığında / dığı zaman'],['Once','dığında / dığı zaman'],['Because','den dolayı / dığı için'],['Since','dığı için / den dolayı'],['As soon as','olur olmaz'],['While','ken'],['As','ken'],['After','den sonra'],['Before','den önce'],['As long as','dığı sürece'],['Although','e rağmen']]],
+['h','When – dığında'],
+['e','When I wake up, I wash my face.','Uyandığımda yüzümü yıkarım.','“I wake up” uyanırım demektir; başına “when” koyduğumuzda ekin anlamı fiille birleşir ve bir cümle daha ister. “I wash my face” ile köprüyü tamamlarız.'],
+['h','Because – dığı için / den dolayı'],
+['p','Bu bağlaca “çünkü” dediğinizi duyar gibiyim; fakat “çünkü” ifadesi Türkçede çok yapay bir şekilde karşımıza çıkar. “Mutluyum çünkü seni gördüm.” ile “Seni gördüğüm için mutluyum.” cümlelerinden ikincisi kulağa daha yatkın gelir. İkisini de aynı şekilde çeviriyoruz: <b>I am happy because I saw you.</b>'],
+['r','Ekleri size vereceğim anlamıyla öğrenirseniz daha rahat cümleler kurabileceksiniz.'],
+['h','Cümleyi sonsuza kadar uzatmak'],
+['e','Although I wake up from the bed every day, I want to sleep.','Her gün yataktan kalkmama rağmen uyumak istiyorum.','“I wake up from the bed every day” cümlesinin başına “although” koyduk; yarım kalan anlamı ikinci cümleyle tamamladık. “İstiyorum” → I want, “uyumak” → to sleep (iki fiil olduğu için isimleştirdik).'],
+['e','When I want to sleep, I sleep.','Uyumak istediğim zaman uyurum.','İkinci çağrışan cümlenin başına yeni bir bağlaç koyarak devam ediyoruz.'],
+['e','As soon as I sleep, I start to see a dream.','Uyur uyumaz rüya görmeye başlarım.','“I start” → başlarım, “to see” → görmeye (isimleştirdik), “a dream” → rüya.'],
+['p','Bu şekilde ikinci çağrışan cümlenizin başına bir bağlaç ekleyerek sonsuza kadar cümle yapabilir ve bağlaç mantığını da bu şekilde çalışabilirsiniz.']
+],
+ex:[
+{t:'mc',q:'“Although” bağlacının kitaptaki karşılığı nedir?',o:['dığı sürece','e rağmen','olur olmaz','dığı için'],a:1,w:'Although – e rağmen.'},
+{t:'mc',q:'“As soon as” ne demektir?',o:['dığı zaman','den önce','olur olmaz','ken'],a:2,w:'As soon as – olur olmaz.'},
+{t:'mc',q:'“As long as” ne demektir?',o:['dığı sürece','den sonra','e rağmen','dığı için'],a:0,w:'As long as – dığı sürece.'},
+{t:'mc',q:'Bağlacın anlamı neyle birleşir?',o:['İkinci cümlenin öznesiyle','Cümlenin ana fiiliyle','En son kelimeyle','İsimle'],a:1,w:'Bağlacın kendi anlamı her zaman cümlenin ana fiili ne ise onunla birleşir ve cümlenin başında yazılır.'},
+{t:'tr',q:'Uyandığımda yüzümü yıkarım.',a:'When I wake up, I wash my face.',w:'When + ana fiil (wake up) = uyandığımda; ardından ikinci cümle gelir.'},
+{t:'tr',q:'Okula vardığında bana mesaj atar.',a:'When he arrives at the school, he sends a message to me.',w:'“dığında” → when; ana fiil arrive ile birleşir. İkinci cümle: mesaj atar → sends a message.'},
+{t:'tr',q:'Trafik yoğun olduğu için geç kalır.',a:'Because the traffic is heavy, he is late.',w:'“dığı için” → because. Yüklem sıfatla bittiği için to be kullanılır.'},
+{t:'tr',q:'Beni görür görmez gülümser.',a:'As soon as he sees me, he smiles.',w:'“olur olmaz” → as soon as; ana fiil see ile birleşir.'},
+{t:'tr',q:'Ben ders çalışırken o televizyon izler.',a:'While I study, he watches television.',w:'“ken” → while; ikinci cümle tam bir cümledir.'},
+{t:'tr',q:'Uyumadan önce kitap okurum.',a:'Before I sleep, I read a book.',w:'“den önce” → before; bağlaçtan sonra cümle gelir.'},
+{t:'tr',q:'Sen yanımda olduğun sürece mutlu olurum.',a:'As long as you are next to me, I am happy.',w:'“dığı sürece” → as long as; her iki yüklem de isim/sıfatla bittiği için to be.'},
+{t:'tr',q:'Hava soğuk olmasına rağmen dışarı çıkarız.',a:'Although the weather is cold, we go out.',w:'“e rağmen” → although.'}
+]
+},
+{
+id:'cagrisim', s:'s2', title:'Çağrışım Cümlesi Kurmak', tag:'Yöntem',
+sum:'Çeviri yapmadan uzun cümle: what, where, who, how, why, when.',
+blocks:[
+['p','Şimdi gelelim en önemli mantıklardan biri olan: kafada çeviri yapmadan nasıl uzun cümle kurabiliriz? Normal şartlarda bir dili öğrenirken sadece o dili düşünerek konuşmamız gerekir. Bu konu, öğrendiğimiz ekleri kafamızda <b>çağrıştırarak</b> İngilizceye dökebilme mantığıdır.'],
+['p','Öncelikle bir özne ve bir fiil gerekir: I go, I drink, They run. Bu cümleyi uzatabilmek için bu fiile bazı sorular sormamız gerekir. Soracağımız sorular, daha önce öğrendiğimiz ekleri çağrıştıracak şekilde olmalıdır.'],
+['h','What → eksik isim'],
+['e','What do you drive? → I drive a car.','Ne sürüyorsun? → Araba sürüyorum.','Çıkan cevapta eksik bir isim bize çıktı. Bu yüzden “what” sorusu her zaman eksik bir isim çıkarır.'],
+['h','Where → in / on / at'],
+['e','Where do you drive? → I drive on the way.','Nerede sürüyorsun? → Yolda sürüyorum.','Ortak nokta “de-da” takısı çağrışıyor. Neden “on”? Çünkü yolun üstünde olacağımız için “de-da” anlamını “on” ile veriyoruz.'],
+['h','Who → with'],
+['e','Who do you drive? → I drive with my friend.','Kimle sürersin? → Arkadaşımla sürerim.','With my mom, with my friend, with my girlfriend… Ortak kelime “ile” → with. Yani “who” sorusu her zaman “with” ekini çağrıştırır.'],
+['h','How → by / -ly'],
+['e','I drive by listening to music.','Müzik dinleyerek sürerim.','“arak-erek” → by; “bir şekilde / ca-ce” → -ly.'],
+['p','<b>Zarf konusu:</b> “Bir şekilde” anlamı veren -ly takısı, sıfatları zarfa dönüştürür. Sıfatlar gözle görülmeyen veya ölçülemeyen şeyleri betimler; zarflar ise fiili betimler, artık bir ismi değil fiili tanımlar. Fast car – hızlı araba (sıfat); I drive fastly – arabayı hızlı bir şekilde sürerim (zarf).'],
+['h','Why → to / because / so that'],
+['dl',[['To – mak için','İsimleştirme eki. I drive to go to job.'],['Because – dığı için','Bağlaçtır, kendisinden sonra bir cümle gerekir. I drive because I want.'],['So that – e bilsin diye','Bağlaçtır; can/may/might gibi modal fiiller ile kullanılır. I drive so that I can go to job.']]],
+['h','When → zaman / bağlaç'],
+['e','I drive when I leave from the home.','Evden çıktığımda sürerim.','Bağlaç mantığını hatırlarsak when = dığında / dığı zaman, bu nedenle cevabımız bir cümle olabilir.'],
+['h','Hepsini tek cümlede birleştirmek'],
+['e','I drive a car on the way with my friend to go to job by listening to music when I leave from the home.','Evden ayrıldığımda müzik dinleyerek işe gitmek için arkadaşımla yolda araba sürerim.','Sadece ekleri çağrıştırarak tek bir cümleye birleştirdik ve B1-B2 seviyesinde bir cümle kurmuş olduk.'],
+['e','I drink water in the kitchen with my brother by standing up to relax when I get thirsty.','Susadığımda rahatlamak için ayakta durarak kardeşimle mutfakta su içerim.','Soru sırası: what → where → who → how → why → when.'],
+['r','Çalışma fiilleri: I buy · They drink · He reads · She watches · We sleep · I run · She chats'],
+],
+ex:[
+{t:'mc',q:'“Who” sorusu hangi eki çağrıştırır?',o:['by','with','to','in'],a:1,w:'Who sorusunun cevabı hep “ile” → with ekini çağrıştırır.'},
+{t:'mc',q:'“Where” sorusu hangi ekleri çağrıştırır?',o:['in - on - at','to - for','by - with','because - so that'],a:0,w:'“de-da” takısı çağrışır; İngilizcede in-on-at ekleri karşımıza çıkar.'},
+{t:'mc',q:'“How” sorusunda hangi ekler çağrışır?',o:['to ve because','by ve -ly','with ve from','in ve at'],a:1,w:'“arak-erek” → by; “bir şekilde / ca-ce” → -ly.'},
+{t:'mc',q:'“So that” yapısından sonra ne gelir?',o:['Tek bir isim','Modal fiilli bir cümle (can/may/might)','Sadece “-ing”li fiil','Hiçbir şey'],a:1,w:'So that bağlaçtır; kendisinden sonra cümle ister ve can/may/might gibi modallarla kullanılır.'},
+{t:'mc',q:'Çağrışım soru sırası hangisidir?',o:['why → when → what → who','what → where → who → how → why → when','who → what → why → how','when → where → why → what'],a:1,w:'Kitaptaki sıra: what → where → who → how → why → when.'},
+{t:'tr',q:'İşe gidebileyim diye sürerim.',a:'I drive so that I can go to job.',w:'“e bilsin diye” → so that + modal (can).'},
+{t:'tr',q:'Susadığımda rahatlamak için ayakta durarak kardeşimle mutfakta su içerim.',a:'I drink water in the kitchen with my brother by standing up to relax when I get thirsty.',w:'what: water, where: in the kitchen, who: with my brother, how: by standing up, why: to relax, when: when I get thirsty.'},
+{t:'tr',q:'(Kendin kur) “They drink” fiilinden 6 soruyla uzun bir cümle oluştur.',a:'They drink tea at the garden with their family by sitting down to rest when they finish the work.',w:'Örnek çeviri — soruları sırayla sorup kendi çağrışımınla da kurabilirsin.'}
+]
+},
+{
+id:'relative', s:'s2', title:'Relative Clause', tag:'İleri',
+sum:'who / which / that: isimleri detaylandırmak.',
+blocks:[
+['p','Gelelim İngilizcenin en önemli konularından biri olan relative clause kullanmaya. İngilizcede relative clause kullanmak zorunludur. Anlamamız gereken en temel mantık, bu konuda sadece <b>isimlerin detaylandırılmasıdır</b>.'],
+['h','Temel 3 ek'],
+['dl',[['who','betimlediğimiz isim bir insan olmalıdır — Ahmet who… / my friend who…'],['which','öncesinde bir hayvan veya cansız bir şey olmalıdır — the cat which… / the pencil which…'],['that','öncesinde belirli bir şeye gerek yoktur; insan, hayvan veya cansız fark etmez']]],
+['h','Sonrasında ne gelir?'],
+['p','“who / which / that” kullanıldıktan sonra iki anlam ortaya çıkar ve bu anlamlar kendilerinden sonra gelen fiillere veya cümleye göre değişir.'],
+['r','1) <b>Fiil</b> ile kullanılırsa → <b>-an / -en</b> anlamı verir.<br>2) <b>Cümle</b> ile kullanılırsa → <b>-dığı / -diği</b> anlamı verir.'],
+['e','the cat which runs','koşan kedi','which → -an/-en anlamı veriyor, run → koşmak.'],
+['e','the cat which is white','beyaz olan kedi','Eğer “am / is / are” kullanırsak “olmak” anlamına dönüşür: which is → olan.'],
+['e','the cat which I saw','gördüğüm kedi','Cümle ile kullanıldığı için -dığı / -diği anlamı verir.'],
+['e','Ahmet who I like','sevdiğim Ahmet',''],
+['e','the pencil that I bought','satın aldığım kalem',''],
+['h','Opsiyonel ek: where'],
+['p','“where” sadece “-dığı/-diği” anlamı için kullanılır ve öncesinde tanımlanan isim <b>yer</b> olmalıdır.'],
+['e','the restaurant where we went','gittiğimiz restoran','Neden ekstra anlattım? Çünkü “that” kullanımı zaten isim fark etmeksizin geçerlidir; bu yüzden “where” yerine “that” de kullanılabilir. Hatta “who” veya “which” yerine de sadece “that” kullanılabilir.']
+],
+ex:[
+{t:'mc',q:'İnsanları betimlerken hangi ek kullanılır?',o:['which','who','where','what'],a:1,w:'Who kullanabilmemiz için betimlediğimiz isim bir insan olmalıdır.'},
+{t:'mc',q:'“the cat which runs” ne demektir?',o:['kedinin koşması','koşan kedi','koştuğum kedi','kedi koşar'],a:1,w:'Fiil ile kullanıldığı için -an/-en anlamı verir.'},
+{t:'mc',q:'“the cat which I saw” ne demektir?',o:['gören kedi','gördüğüm kedi','beyaz olan kedi','kedi gördü'],a:1,w:'Cümle ile kullanıldığı için -dığı/-diği anlamı verir.'},
+{t:'mc',q:'Hangi ek her türlü isimle (insan, hayvan, cansız) kullanılabilir?',o:['who','which','that','where'],a:2,w:'That kullanabilmemiz için öncesinde belirli bir şeye gerek yoktur.'},
+{t:'tr',q:'beyaz olan kedi',a:'the cat which is white',w:'“which is” → olan.'},
+{t:'tr',q:'satın aldığım kalem',a:'the pencil that I bought',w:'Cümle geldiği için -dığı anlamı; kalem cansız olduğu için which veya that.'},
+{t:'tr',q:'gittiğimiz restoran',a:'the restaurant where we went',w:'İsim bir yer olduğu için where kullanılabilir; “that” de olur.'},
+{t:'tr',q:'sevdiğim arkadaşım',a:'my friend who I like',w:'İnsan + cümle → who + özne-fiil.'}
+]
+},
+{
+id:'oznesiz', s:'s2', title:'Öznesiz Cümle Kurma', tag:'İleri',
+sum:'It is … to … ve “-ing” ile başlayan özne.',
+blocks:[
+['p','Öznesiz cümlelerden kastımız, “I, you, we, they, he, she” özneleri olmadan cümlelere nasıl başlarız. Önce “it” konusuna değinelim, daha sonra fiil ile başlayan cümlelerimize bakacağız.'],
+['p','Bana İngilizcede “iyi” ne demek desem, çoğu kişi “good” cevabını verir. Fakat her cümleyi “özne – fiil – isim/sıfat” yapısına göre kurmamız gerekir. O zaman ben “good” derken bile bir cümle kurmam gerekiyor.'],
+['r','“İyi” dediğimizde bize “I, you, we, they, he, she” özneleri çağrışmıyorsa, bu özne belirsiz olan <b>“it”</b> olur. Yani cümlenin sonu belirsizlikle bitiyorsa, bunlar her zaman “it” cümleleridir.'],
+['p','“İyi” yüklemi bir eylem midir? Hayır, bir sıfat. Yani sıfatla veya isimle biten yapılarda, fiilimiz her zaman <b>to be (am / is / are)</b> yapısı olur.'],
+['dl',[['İyi','It is good'],['Kötü','It is bad'],['Sağlıklı','It is healthy']]],
+['p','İngilizce her zaman en az üç kelime ile konuşulur; öznesiz ve fiilsiz hiçbir yapı yoktur. Türkçede kapı çalınca “Kim o?” deriz, cevap “Ben” olur. İngilizcede: <b>Who is it? → It is me.</b>'],
+['h','It – fiil – to – fiil yapısı'],
+['e','It is healthy to do sport.','Spor yapmak sağlıklıdır.','Yükleme baktığımızda (“sağlıklıdır”) öznesi belli değil → it is healthy. Sola doğru ilerlediğimizde “spor yapmak” fiilini isimleştirmeliyiz → to do.'],
+['e','It is fun to study in the library.','Kütüphanede ders çalışmak eğlenceli.','Gene özne bulamıyoruz → it is fun. Sola: “ders çalışmak” → to study, “kütüphanede” → in the library.'],
+['h','Fiille başlatmak: “-ing”'],
+['p','Eğer bir cümlede özne olmayıp it ile de başlamak istemiyorsak, cümledeki yalın (mak/mek) fiilimizi cümlenin başına koyup “-ing” ile isimleştirerek başlatabiliriz.'],
+['e','Studying in the library is fun.','Kütüphanede ders çalışmak eğlenceli.','“Çalışmak” fiilini özne konumuna aldık ve “-ing” ile isimleştirdik; sola doğru çevirdik; artık sola gidecek yer kalmayınca yükleme geçtik: is fun.'],
+['h','Öznel hale getirmek: for + ekler'],
+['p','“Ders çalışmak” gibi genel kısımlara “ders çalışman – ders çalışmam – ders çalışmamız” eklerini koyduğumuzda bir kişiye gönderme yapıyoruz. Bunları koymadan önce <b>“for”</b> ekini kullanmamız gerekiyor.'],
+['dl',[['You → n','ders çalışman → for you to study'],['Me → m','ders çalışmam → for me to study'],['Them → ları','ders çalışmaları → for them to study'],['Us → mız','ders çalışmamız → for us to study'],['Him → sı','ders çalışması → for him to study'],['Her → sı','ders çalışması → for her to study']]],
+['e','It is very important for you to do sport.','Spor yapman çok önemli.',''],
+['e','It is hard for us to meet with others.','Başkalarıyla buluşmamız zor.',''],
+['e','It is easy for them to buy this cloth.','Bu kıyafeti satın almaları kolay.',''],
+['e','It is important for him to speak with you.','Seninle konuşması önemli.','']
+],
+ex:[
+{t:'mc',q:'Yüklem belirsizse ve sıfatla bitiyorsa cümleye nasıl başlarız?',o:['He is …','It is …','They are …','I am …'],a:1,w:'Özne belirsizse “it”, yüklem sıfat/isimse “to be” kullanılır.'},
+{t:'fill',q:'___ is healthy to do sport.',a:'It',w:'Öznesi belli olmayan cümlelerde “it” kullanılır.'},
+{t:'mc',q:'“Kütüphanede ders çalışmak eğlenceli.” cümlesinin “-ing”li hali hangisidir?',o:['It is fun studying in the library.','Studying in the library is fun.','To study in the library fun.','Study in the library is fun.'],a:1,w:'Fiili özne konumuna alıp “-ing” ile isimleştiririz.'},
+{t:'mc',q:'“Ders çalışmam” nasıl çevrilir?',o:['to study me','for me to study','my to study','for to study me'],a:1,w:'Önce “for” + özne (me), sonra “to” + fiil.'},
+{t:'tr',q:'Her gün sabah uyanmam çok zor.',a:'It is very hard for me to wake up in the morning every day.',w:'Yüklem: çok zor → it is very hard. “Uyanmam” → for me to wake up. “Sabah” → in the morning. “Her gün” → every day.'},
+{t:'tr',q:'İşte çalışmak çok zor.',a:'It is very hard to work at the job.',w:'Özne belirsiz → it is very hard; “çalışmak” → to work; “işte” → at the job.'},
+{t:'tr',q:'Yemek pişirmesi güzel.',a:'It is nice for him to cook food.',w:'“-si” eki → for him; “pişirmek” → to cook.'},
+{t:'tr',q:'Her gün koşmamız gerçekten önemli.',a:'It is really important for us to run every day.',w:'“-mız” → for us; “koşmak” → to run.'},
+{t:'tr',q:'Film izlemek favori aktivitem.',a:'It is my favorite activity to watch a movie.',w:'Yüklem bir isim → it is my favorite activity; “izlemek” → to watch.'},
+{t:'tr',q:'Bazen yüzmeleri önemli.',a:'It is sometimes important for them to swim.',w:'“-leri” → for them; “yüzmek” → to swim.'},
+{t:'tr',q:'Her gün oyun oynaman önemli değil.',a:'It is not important for you to play game every day.',w:'“-n” → for you; olumsuzluk to be fiiline gelir → is not.'},
+{t:'tr',q:'Konserde müzik dinlememiz eğlenceli.',a:'It is fun for us to listen to music at the concert.',w:'“-miz” → for us; “dinlemek” → to listen; “konserde” → at the concert.'},
+{t:'tr',q:'Başka ülkeye seyahat etmek önemli.',a:'It is important to travel to another country.',w:'Özne yok → it is important; “seyahat etmek” → to travel.'}
+]
+},
+{
+id:'noun-clause', s:'s2', title:'Noun Clause', tag:'İleri',
+sum:'“that” ve wh5 ile cümleyi isimleştirmek.',
+blocks:[
+['p','Bu konunun temel amacı şudur: bildiğimiz soru eklerini (what, where, which, who, why, how much) sadece sorularda kullanmadığımızı öğreneceksiniz. Noun clause dediğimizde aklımıza gelen ilk şeyin <b>“that”</b> kullanımı olması önemlidir. “That” İngilizcenin bel kemiğidir.'],
+['r','Noun clause’un temel amacı, gramer olarak bir <b>cümleyi isimleştirme</b> görevi görmesidir. “to/ing” sadece fiilleri isimleştirirken, “that” bir cümleyi isimleştirir ve çok uzun cümleler kurmamızı sağlar.'],
+['h','“That”ın iki anlamı'],
+['dl',[['“ma-me” anlamı','Sadece “that” kullanımından önce bir <b>sıfat</b> varsa gelir.'],['“dığı-diği” anlamı','“That” öncesine bir <b>fiil</b> geldiğinde oluşur.']]],
+['e','It is nice that you are here.','Burada olman güzel.','Nice (sıfat) ve that yan yana kullanıldığında, that’ten sonra gelen cümlenin ana fiiline “ma-me” anlamı katılır. “are + that” → “olman” olarak çevrilir.'],
+['e','I know that you are here.','Burada olduğunu biliyorum.','Çünkü that’ın öncesine fiil gelmiş (know).'],
+['h','“ma-me” kısmını “that” dışında çevirmek'],
+['p','Eğer özne varsa, bunu sadece isimleştirme yaparak da çevirebiliriz. Bunun için “for” edatının gramer mantığını kullanırız. “For”, kendisinden sonra gelen özneleri isimleştirir: For I → me, For you → you, For we → us, For they → them, For he → him, For she → her.'],
+['e','It is hard for me to come.','Gelmem zor.','“Zor” → it is hard; “Gelmem” → “m” (for me) + “to” + “gel” (come).'],
+['e','It is impossible for them to study.','Ders çalışmaları imkansız.','“İmkansız” → it is impossible; “Çalışmaları” → “ları” (for them) + “ma” + “çalış” (study).'],
+['h','Wh5 soruları — “dığı” ekiyle'],
+['p','Burada “what, where” vb. soru kalıplarının anlamları bildiğiniz gibi kalacak. Tek fark, bunları “dığı” ekiyle birleştirecek olmamızdır. En önemlisi, bu wh5 sorularından sonra her zaman cümle gelmek zorundadır (özne + fiil şeklinde).'],
+['dl',[['What','ne-dığı'],['Who','kim-dığı'],['Where','nerde-dığı'],['Why','niçin-dığı'],['How much','ne kadar çok-dığı'],['What kind of','ne tür-düğü']]],
+['e','I know what you want.','Ne istediğini biliyorum.','Sondan: “Biliyorum” → I know, “Ne istediğini” → what you want.'],
+['e','I know where you live.','Nerede yaşadığını biliyorum.',''],
+['e','You know how much I love you.','Seni ne kadar çok sevdiğimi biliyorsun.',''],
+['e','I know who you met with.','Kiminle buluştuğunu biliyorum.','“with” burada sonda kalır; kimle buluştuğu belli olmadığı için with/to/in gibi ekleri sona koymamız gerekir.']
+],
+ex:[
+{t:'mc',q:'“That”tan önce bir sıfat gelirse hangi anlam oluşur?',o:['dığı-diği','ma-me','an-en','arak-erek'],a:1,w:'“ma-me” anlamı, sadece that kullanımından önce bir sıfat varsa gelir.'},
+{t:'mc',q:'“I know that you are here.” ne demektir?',o:['Burada olman güzel.','Burada olduğunu biliyorum.','Burada olacağını biliyorum.','Buradayım biliyorum.'],a:1,w:'That’ın öncesine fiil (know) geldiği için “dığı” anlamı oluşur.'},
+{t:'mc',q:'Noun clause’da wh5 sorularından sonra ne gelmek zorundadır?',o:['Soru cümlesi','Özne + fiil şeklinde düz cümle','Sadece isim','“to” + fiil'],a:1,w:'Wh5 sorularından sonra her zaman cümle (özne + fiil) gelmek zorundadır.'},
+{t:'fill',q:'I know ___ you want. (Ne istediğini biliyorum.)',a:'what',w:'“Ne-dığı” → what.'},
+{t:'fill',q:'You know how ___ I love you. (ne kadar çok)',a:'much',w:'“Ne kadar çok-dığı” → how much.'},
+{t:'tr',q:'Nerede yaşadığını biliyorum.',a:'I know where you live.',w:'“Nerde-dığı” → where; sonrasında düz cümle gelir.'},
+{t:'tr',q:'Kiminle buluştuğunu biliyorum.',a:'I know who you met with.',w:'“Kim-dığı” → who; “with” sonda kalır.'},
+{t:'tr',q:'Burada olman güzel.',a:'It is nice that you are here.',w:'Sıfat (nice) + that → “ma-me” anlamı.'},
+{t:'tr',q:'Gelmem zor.',a:'It is hard for me to come.',w:'“m” → for me, “ma” → to, “gel” → come.'}
+]
+},
+{
+id:'quantifiers', s:'s2', title:'Quantifiars', tag:'Miktar',
+sum:'much, many, some, any, a lot of ve there is / there are.',
+blocks:[
+['p','İsimlerin miktarını belli etmek için kullanacağımız yapılara bakacağız: “Çok, az, biraz, hiç, herhangi” gibi anlamları vereceğiz. Önce sayılamayan ve sayılabilen isimlere bakmamız gerekiyor.'],
+['h','1. Sayılamayan isimler'],
+['p','<b>Much (çok)</b>, <b>a little (az)</b> → sayılamayan isimlerle kullanılır.'],
+['l',['%80 mantığı: Kendinden sonra -s takısı alamayan isimlerdir (money → moneys ✗).','Sıvılar: water, coke, sea, juice gibi sıvı olan şeyler sayılamaz.','Kalıp hâlindeki şeyler: cheese, bread, money gibi bütün hâlde olan şeyler sayılmaz. Fakat a piece of / a slice of ile parçalarsak sayılabilir hale gelir; paranın parçalanmış hâli coins → bozuk para → sayılabilir olur.','Mantıken sayamayacağımız şeyler: rice, hair gibi isimler teknik olarak sayılabilir ama mantık olarak sayılamaz kabul edilir.']],
+['dl',[['much money','çok para'],['little water','az su']]],
+['h','2. Sayılabilir isimler'],
+['p','<b>Many (çok)</b> – <b>a few (az)</b> → sayılabilir isimlerle kullanılır. Sonu -s takısı alabilen her şey sayılabilir olarak kodlanabilir.'],
+['dl',[['many students','çok öğrenci'],['a few people','az insan']]],
+['h','3. Her ikisinde de kullanılanlar'],
+['dl',[['Some (biraz)','Genelde olumlu cümlelerde: some coke'],['Any (hiç / herhangi)','Genelde sorularda: Do you have any money? / Did you see any cats here?'],['A lot of (çok)','much / many olarak düşünebilirsiniz; her yerde kullanılabilir'],['A bit of (az)','a few / a little gibi düşünülebilir: a bit of water, a bit of children']]],
+['h','There is / There are'],
+['p','Bu konuyla en çok kullanılan yapı budur ve aşırı önemlidir. Önce bilmemiz gereken kelimeler: <b>someone</b> (birisi), <b>anyone</b> (herhangi biri), <b>no one</b> (hiç kimse), <b>everyone</b> (herkes). Bu kelimeler her zaman <b>tekil</b> olarak kullanılır.'],
+['f',['There is','s-a-n-e','to','fiil']],
+['e','There is someone to help me.','Bana yardım edecek birisi var.','Sondan çevirirsek: there is → var, someone → birisi, to help → yardım edecek, me → bana.'],
+['e','There is no one to make me happy.','Beni mutlu edecek kimse yok.',''],
+['e','Is there anyone to give me a pencil?','Bana kalem verecek birisi var mı?','Soru formu.']
+],
+ex:[
+{t:'mc',q:'“Çok para” nasıl söylenir?',o:['many money','much money','a few money','many moneys'],a:1,w:'Money sayılamaz bir isimdir; sayılamayanlarla much kullanılır.'},
+{t:'mc',q:'“Az insan” nasıl söylenir?',o:['a little people','much people','a few people','little peoples'],a:2,w:'People sayılabilir; sayılabilirlerle a few kullanılır.'},
+{t:'mc',q:'Hangisi hem sayılabilir hem sayılamayan isimlerle kullanılabilir?',o:['much','many','a lot of','a few'],a:2,w:'A lot of = much/many; isim sayılabilir mi düşünmenize gerek yoktur.'},
+{t:'fill',q:'Do you have ___ money? (Hiç paran var mı?)',a:'any',w:'Any (hiç / herhangi) genelde sorularda karşımıza çıkar.'},
+{t:'fill',q:'There ___ someone to help me.',a:'is',w:'someone / anyone / no one / everyone her zaman tekildir → is.'},
+{t:'tr',q:'Beni mutlu edecek kimse yok.',a:'There is no one to make me happy.',w:'there is → yok/var, no one → kimse, to make → edecek, me happy → beni mutlu.'},
+{t:'tr',q:'Bana kalem verecek birisi var mı?',a:'Is there anyone to give me a pencil?',w:'Soru formunda “is” başa gelir.'}
+]
+},
+{
+id:'superlative', s:'s2', title:'Superlative', tag:'Sıfat',
+sum:'“en” anlamı: the most + sıfat veya the …-est.',
+blocks:[
+['p','Bu konuyu işlemeden önce bilmeniz gereken temel mantık şudur: sıfatların değişimlerine odaklanmalısınız. Yani bad, good, beautiful, fast, slow gibi sıfatlar bu konuyla birlikte değişim gösterecek.'],
+['r','<b>6 harf kuralı:</b> Sıfat 6 harften <b>uzunsa</b> başına <b>the most</b>; 6 harften <b>kısaysa</b> sonuna <b>-est</b> gelir.'],
+['dl',[['beautiful (9 harf)','the most beautiful → en güzel'],['fast (4 harf)','the fastest → en hızlı']]],
+['p','Burada harf sayısını tam saymanıza gerek yok; sıfat uzun görünüyor veya telaffuzu uzunsa the most alacağını düşünebilirsiniz.'],
+['h','Değişmeyen sıfatlar (ezberlenmeli)'],
+['dl',[['bad','the worst'],['good','the best'],['little','the least'],['far','the furthest']]],
+['h','En yaygın kullanım kalıbı'],
+['f',['the best way','to + fiil','is','to + fiil']],
+['p','Anlam: “Bir şey yapmanın en iyi yolu şudur.” Buradaki to “-mak/-mek” anlamı verir ve fiili isimleştirir.'],
+['e','The best way to learn English is to study a lot.','İngilizce öğrenmenin en iyi yolu çok çalışmaktır.',''],
+['e','The best way to be happy is to dance.','Mutlu olmanın en iyi yolu dans etmektir.','']
+],
+ex:[
+{t:'mc',q:'“En güzel” nasıl söylenir?',o:['the beautifulest','the most beautiful','more beautiful','beautifuler'],a:1,w:'Beautiful 6 harften uzun olduğu için the most alır.'},
+{t:'fill',q:'fast → the ___ (en hızlı)',a:'fastest',w:'6 harften kısa sıfatlar -est alır.'},
+{t:'mc',q:'“good” sıfatının superlative hali nedir?',o:['the goodest','the best','the most good','the better'],a:1,w:'Değişmeyen (düzensiz) sıfatlardandır: good → the best.'},
+{t:'mc',q:'“far” sıfatının superlative hali nedir?',o:['the farest','the furthest','the most far','the farther'],a:1,w:'far → the furthest.'},
+{t:'tr',q:'İngilizce öğrenmenin en iyi yolu çok çalışmaktır.',a:'The best way to learn English is to study a lot.',w:'the best way to + fiil is to + fiil kalıbı.'},
+{t:'tr',q:'Mutlu olmanın en iyi yolu dans etmektir.',a:'The best way to be happy is to dance.',w:'“olmak” → to be; “dans etmek” → to dance.'}
+]
+},
+{
+id:'comparative', s:'s2', title:'Comparative', tag:'Sıfat',
+sum:'“daha” anlamı: more + sıfat veya sıfat + -er.',
+blocks:[
+['p','Bu konuda superlative ile gramer yapısı birebir aynıdır; tek fark kelimelerde olacak. Comparative (karşılaştırma), iki şeyi karşılaştıracağımız zaman kullanılır ve Türkçesi <b>“daha”</b> demektir.'],
+['r','<b>6 harf kuralı:</b> Sıfat 6 harften uzunsa başına <b>more</b>; kısaysa sonuna <b>-er</b> gelir.'],
+['dl',[['beautiful (9 harf)','more beautiful → daha güzel'],['fast (4 harf)','faster → daha hızlı']]],
+['h','Değişen sıfatlar (irregular)'],
+['dl',[['good','better'],['bad','worse'],['little','less'],['far','further']]],
+['h','Kullanım mantığı'],
+['p','Bu yapı genellikle iki şey karşılaştırılırken kullanılır, ancak soyut kavramlarla da karşılaştırma yapabiliriz. Her zaman “Ayşe, Fatma’dan daha zeki” gibi somut karşılaştırmalar yapmak zorunda değiliz.'],
+['e','You are more beautiful than I think.','Düşündüğümden daha güzelsin.',''],
+['e','You ran faster than I expected.','Umduğumdan daha hızlı koştun.',''],
+['r','En çok kullanılan kalıplar: <b>than I think</b>, <b>than I hope</b>, <b>than I expected</b>.']
+],
+ex:[
+{t:'fill',q:'fast → ___ (daha hızlı)',a:'faster',w:'6 harften kısa sıfatlar -er alır.'},
+{t:'mc',q:'“daha güzel” nasıl söylenir?',o:['beautifuler','more beautiful','the most beautiful','most beautiful'],a:1,w:'Beautiful uzun bir sıfat olduğu için more alır.'},
+{t:'mc',q:'“bad” sıfatının comparative hali nedir?',o:['badder','worse','the worst','more bad'],a:1,w:'Düzensizdir: bad → worse.'},
+{t:'tr',q:'Düşündüğümden daha güzelsin.',a:'You are more beautiful than I think.',w:'Yüklem sıfatla bitiyor → are; “daha” → more; kalıp: than I think.'},
+{t:'tr',q:'Umduğumdan daha hızlı koştun.',a:'You ran faster than I expected.',w:'fast kısa sıfat → faster; kalıp: than I expected.'}
+]
+},
+{
+id:'kelime', s:'s2', title:'Kelime Ezberleme Mantığı', tag:'Yöntem',
+sum:'“Yancı” kelimeler ve sahne kurarak öğrenme.',
+blocks:[
+['p','Öncelikle yapmamanız gereken şeyi açıklayayım: bir kelimeyi okurken hemen anlamına bakıp bir deftere yazmak, arkasına Türkçesini yazmak ve sadece bakarak öğrenmeye çalışmak <b>kısa süreli hafıza</b> için işe yarar. Sınava girecekseniz bu yöntem 1-2 hafta için geçici fayda sağlar. Ama gerçekten öğrenmek istiyorsanız, ezberlemek yerine kelimenin <b>“yancıları”</b> üzerine çalışmalısınız.'],
+['h','Nasıl yapılır?'],
+['l',['Kelimeyi düşündüğünüzde aklınıza gelen yakın anlamlı veya ilgili kelimeleri yazın.','Bu kelimelerin Türkçelerini düşünün ve bilmediklerinizi sözlükten bulup yazın.','Kafanızda bir sahne oluşturun ve yancılarınızı bu sahneye yerleştirin.','Bu yancıları kullanarak, daha önce öğrendiğimiz çağrışım mantığıyla cümleler oluşturun.']],
+['h','Örnek: war – savaş'],
+['dl',[['battlefield','savaş alanı'],['soldier','asker'],['enemy','düşman'],['kill','öldürmek'],['blood','kan'],['supply','malzeme'],['gun','silah'],['sword','kılıç'],['armor','zırh'],['commander','komutan'],['pit','hendek']]],
+['h','Çağrışımla cümle kurma'],
+['e','Soldier kills the enemy.','Asker düşmanı öldürür.','What does the soldier kill?'],
+['e','Soldier kills in the battlefield.','Asker savaş alanında öldürür.','Where does the soldier kill?'],
+['e','Soldier kills by screaming. / Soldier kills with a gun.','Asker bağırarak öldürür. / Asker silahla öldürür.','How does the soldier kill?'],
+['e','Soldier kills to win the war.','Asker savaşı kazanmak için öldürür.','Why does the soldier kill? — “so that he can win the war” de denebilir.'],
+['e','Soldier kills when the war begins.','Asker savaş başladığında öldürür.','When does the soldier kill?'],
+['e','Soldier kills the enemy in the battlefield with a gun by screaming to win the war when the war begins.','Asker savaş başladığında savaşı kazanmak için bağırarak, silahla savaş alanında düşmanı öldürür.','Hem “war” kelimesini öğreniyoruz, hem de anlamını bilmediğimiz diğer yancı kelimeleri de öğrenmiş oluyoruz.'],
+['r','Eğer öğrenmek istediğiniz kelimeyle ilgili cümleler kurmazsanız, o kelimeyi sadece <b>ezberlemiş</b> olursunuz.']
+],
+ex:[
+{t:'mc',q:'Kitaba göre kelimeyi defterin bir yanına İngilizce, diğer yanına Türkçe yazıp bakarak çalışmak ne sağlar?',o:['Kalıcı öğrenme','Kısa süreli hafıza','Telaffuz gelişimi','Gramer bilgisi'],a:1,w:'Bu yöntem kısa süreli hafıza için işe yarar; sınav öncesi 1-2 hafta geçici fayda sağlar.'},
+{t:'mc',q:'“Yancı” kelimelerden kasıt nedir?',o:['Zıt anlamlı kelimeler','Kelimeyi düşününce aklına gelen ilgili kelimeler','Fiilin üçüncü halleri','Eş sesli kelimeler'],a:1,w:'war için soldier, enemy, gun, battlefield gibi aklına gelen ilgili kelimelerdir.'},
+{t:'tr',q:'Asker savaşı kazanmak için öldürür.',a:'Soldier kills to win the war.',w:'Why sorusu → “mak için” → to.'},
+{t:'tr',q:'Asker savaş başladığında öldürür.',a:'Soldier kills when the war begins.',w:'When sorusu → bağlaç when + cümle.'}
+]
+},
+/* ============ S3 ============ */
+{
+id:'tenses-giris', s:'s3', title:'Tensler “Zamanlar” — Giriş', tag:'Zaman',
+sum:'Tenslerin tek kuralı: yardımcı fiiller.',
+blocks:[
+['p','Bu kısma kadar sizlere “cümle kurma, nasıl çeviri yapılır, İngilizce düşünme, öznesiz cümleler, kelime ezberleme mantığı nasıl olmalı?” gibi konularda mantık vermeye çalıştım; konu anlatımı yapmadım. Kitabın geri kalanında asıl konu anlatımına başlayacağız.'],
+['r','Unutmamamız gereken en önemli şey, bu ilk kısımda anlattığım mantıkları <b>her zaman kullanarak</b> cümleler kurmamız ve öğrendiğimiz her konuyu bu mantıkların üstüne eklememizdir.'],
+['p','Tenses mantığının tek bir kuralı vardır: Eğer bu kuralı iyi anlarsanız, 12 tane tense’i öğrenmek çok kolay olur.'],
+['r','Her tense’in kendine ait <b>yardımcı fiilleri</b> vardır ve bunların tek amacı, <b>ana fiilin içine girerek</b> ona hangi zaman anlamını vereceksek onu katmaktır.']
+],
+ex:[
+{t:'mc',q:'Tenses mantığının tek kuralı nedir?',o:['Her tense ayrı ezberlenir','Yardımcı fiiller ana fiilin içine girip ona zaman anlamı katar','Her tense -ing alır','Fiiller hiç değişmez'],a:1,w:'Her tense’in kendine ait yardımcı fiilleri vardır ve tek amaçları ana fiile zaman anlamı katmaktır.'}
+]
+},
+{
+id:'present-simple', s:'s3', title:'Geniş Zaman (Present Simple)', tag:'Zaman',
+sum:'DO ve DOES yardımcı fiilleri.',
+blocks:[
+['p','Adından da anlaşılacağı gibi basit bir zaman. Genel rutinlerimiz için ve bilimsel gerçeklerde kullanılır. Bilmeniz gereken tek şey: Action fiillerin çekimleri.'],
+['r','İhtiyacımız olan yardımcı fiiller: <b>DO</b> ve <b>DOES</b>. Anlamları yoktur, sadece ana fiilin içine girip <b>“ar-er”</b> anlamını katar. DO → çoğul özneler (I, YOU, WE, THEY); DOES → tekil özneler (HE, SHE, IT).'],
+['h','Olumlu'],
+['e','I wake up from the bed every day.','Her gün yataktan kalkarım.','DO yardımcı fiilini “wake up” fiilinin içine koyduğumuzda, içinde gizlenmiş olur: I do wake up from the bed every day.'],
+['h','Olumsuz'],
+['e','I don’t wake up from the bed every day.','Her gün yataktan kalkmam.','Olumsuzluk eki “not” yardımcı fiile eklenir. Fiilin kendisi hiçbir zaman olumsuz yapılmaz; tüm tenslerde olumsuzluk sadece yardımcı fiiller ile yapılır.'],
+['h','Soru'],
+['e','Do I wake up from the bed every day?','Her gün yataktan kalkar mıyım?','DO yardımcı fiilini ana fiilden çıkarıp, öznenin başına koyarız.'],
+['h','Tekil özneler (He, She, It)'],
+['e','He wakes up from the bed every day.','O her gün yataktan kalkar.','DOES yardımcı fiilini “wake up” fiiline soktuğumuzda, DOES içindeki “es” takısı fiile eklenir.'],
+['e','He doesn’t wake up from the bed every day.','O her gün yataktan kalkmaz.','does wake up → doesn’t wake up.'],
+['e','Does he wake up from the bed every day?','O her gün yataktan kalkar mı?','“Does he wakes up” demiyoruz; DOES artık dışarıda ve fiili etkileyecek bir ek yok, fiil yalın hâlde olmalıdır.'],
+['r','Bu mantık tüm tense’lerde aynıdır: fiilin içine yardımcı fiil girer ve ona bazı ekler ekler; olumsuz ve soru cümlelerinde yardımcı fiil <b>dışarı çıkar</b>, fiil her zaman <b>yalın</b> olur.'],
+['h','Zaman zarfları'],
+['dl',[['Every','her (day, year, week, month)'],['Sometimes','bazen'],['Never','asla, hiç'],['Always','her zaman, daima'],['Often','sık sık'],['Usually','genellikle'],['Rarely','nadiren']]],
+['p','Zaman zarfları, ana fiilin ne sıklıkla gerçekleştiğini gösterdiği için genellikle <b>özne ve fiil arasına</b> yerleştirilir.'],
+['e','I sometimes play football to enjoy with my friends.','Arkadaşlarımla eğlenmek için bazen futbol oynarım.',''],
+['e','She usually drinks hot milk so that she can feel relaxed.','Rahat hissedebilmek için genellikle sıcak süt içer.','']
+],
+ex:[
+{t:'fill',q:'He ___ up from the bed every day. (wake)',a:'wakes',w:'DOES tekil öznede fiilin içine girer ve “es/s” takısı fiile eklenir.'},
+{t:'mc',q:'Hangisi doğrudur?',o:['Does he wakes up?','Does he wake up?','Do he wake up?','Does he waking up?'],a:1,w:'DOES dışarı çıktığında fiil yalın hâlde kalır.'},
+{t:'mc',q:'Olumsuzluk eki nereye eklenir?',o:['Ana fiile','Yardımcı fiile','Özneye','Cümlenin sonuna'],a:1,w:'Fiilin kendisi hiçbir zaman olumsuz yapılmaz; olumsuzluk sadece yardımcı fiiller ile yapılır.'},
+{t:'fill',q:'___ you wake up early? (soru)',a:'Do',w:'Çoğul öznelerde (I, you, we, they) DO kullanılır.'},
+{t:'mc',q:'Zaman zarfları genellikle nereye yerleştirilir?',o:['Cümlenin başına','Özne ve fiil arasına','Cümlenin sonuna','Yardımcı fiilden önce'],a:1,w:'Ana fiilin ne sıklıkla gerçekleştiğini gösterdiği için özne ve fiil arasına yerleştirilir.'},
+{t:'tr',q:'Arkadaşlarımla eğlenmek için bazen futbol oynarım.',a:'I sometimes play football to enjoy with my friends.',w:'Zaman zarfı özne-fiil arasında; “eğlenmek için” → to enjoy.'},
+{t:'tr',q:'Rahat hissedebilmek için genellikle sıcak süt içer.',a:'She usually drinks hot milk so that she can feel relaxed.',w:'Tekil özne → drinks; “ebilmek için” → so that + can.'}
+]
+},
+{
+id:'present-cont', s:'s3', title:'Present Continious Tense', tag:'Zaman',
+sum:'TO BE + fiil-ing.',
+blocks:[
+['p','Bu tense’i kullanırken tekrar <b>“-ing”</b> ekini hatırlayacağız. Her tense gibi, bu tense’in de yardımcı fiilleri vardır ve bunlar <b>TO BE (am, is, are)</b> olacaktır. Bu yardımcı fiiller, ana fiilimizin içine girerek bir değişim yapmaz; fakat ana fiilimizi isimleştirmemiz gerekir.'],
+['h','Olumlu'],
+['e','I am playing football.','Futbol oynuyorum.','O an oynuyor olduğumu belirtmek için to be yardımcı fiilini kullanmam gerekir. Ama “I am play” diyemeyiz; iki fiil yan yana gelemez. Bu nedenle “-ing” ile playing yaparız; cümlede tek fiil kalır, o da am’dır.'],
+['e','I playing football.','(Yanlış)','Fiil yapısı eksik, büyük gramer hatasıdır.'],
+['e','I am drinking. / She is eating.','Şu an içiyorum. / Şu an yiyor.',''],
+['h','Olumsuz'],
+['e','I am not playing football.','Şu anda futbol oynamıyorum.','Her yardımcı fiile not eklediğimizde cümle olumsuz olur.'],
+['h','Soru'],
+['e','Am I playing football?','Şu anda futbol oynuyor muyum?','Yardımcı fiilleri her zaman dışarı çıkarıp öznemizin başına koyuyoruz.'],
+['h','Zaman zarfları'],
+['dl',[['Now','şimdi'],['Right now','tam şimdi'],['At the moment','şu anda']]],
+['e','Ayşe is playing volleyball by enjoying to spend time with her friends at the street.','Ayşe sokakta arkadaşlarıyla zaman geçirmek için eğlenerek voleybol oynuyor.','Eklerin karşılığını daha önce öğretmiştim; çeviriyi sondan gelerek yaptığımızda mantığını anlayabilirsiniz.']
+],
+ex:[
+{t:'mc',q:'Present Continuous’un yardımcı fiilleri nelerdir?',o:['do / does','am / is / are','will / be going to','have / has'],a:1,w:'Bu tense’in yardımcı fiilleri TO BE (am, is, are) olacaktır.'},
+{t:'mc',q:'“I playing football.” neden yanlıştır?',o:['“-ing” fazla','Fiil yapısı eksik, to be yok','Özne yanlış','Football çoğul olmalı'],a:1,w:'Bu yapıda fiil yoktur, sadece özne ve isim vardır; İngilizce kurallı bir dil olduğu için fiil mutlaka olmalıdır.'},
+{t:'fill',q:'She ___ eating. (Şu an yiyor.)',a:'is',w:'Tekil özne → is.'},
+{t:'tr',q:'Şu anda futbol oynamıyorum.',a:'I am not playing football.',w:'Olumsuzluk yardımcı fiile eklenir: am not.'},
+{t:'tr',q:'Ayşe sokakta arkadaşlarıyla zaman geçirmek için eğlenerek voleybol oynuyor.',a:'Ayşe is playing volleyball by enjoying to spend time with her friends at the street.',w:'Sondan: oynuyor → is playing, voleybol → volleyball, eğlenerek → by enjoying, zaman geçirmek için → to spend time, arkadaşlarıyla → with her friends, sokakta → at the street.'}
+]
+},
+{
+id:'future', s:'s3', title:'Future Tense', tag:'Zaman',
+sum:'will (plansız) ve be going to (planlı).',
+blocks:[
+['p','Bu tense’i kullanırken anlamamız gereken mantık, yapacağımız eylemin <b>planlı mı plansız mı</b> olduğudur.'],
+['dl',[['will','plansız, spontan, kanıtı olmayan eylemler için'],['be going to','planlı, kanıtı olan eylemler için']]],
+['r','Bu yardımcı fiiller ana fiilin içine girmeyecek, her zaman <b>dışarıda</b> olacaklardır.'],
+['e','I will come to the party.','Partiye geleceğim. (Plansız)','will kullandığımızda ana fiil come’a “acak-ecek” anlamını eklemiş oluyoruz.'],
+['e','I am going to come to the party.','Partiye geleceğim. (Planlı)','Buradaki be, yani am/is/are yardımcı fiil olarak kullanılır.'],
+['h','Olumsuz'],
+['e','I will not come to the party. / I won’t come to the party.','Partiye gelmeyeceğim.',''],
+['e','I am not going to come to the party.','Partiye gelmeyeceğim.',''],
+['h','Soru'],
+['e','Will I go to the party?','Partiye gidecek miyim? (Plansız)',''],
+['e','Am I going to go to the party?','Partiye gidecek miyim? (Planlı)',''],
+['h','Zaman zarfları'],
+['dl',[['Next','gelecek (next day/year/month/week)'],['Tomorrow','yarın'],['Future','gelecek — in the future → gelecekte']]],
+['e','She is going to bring a gift for me to give next month when my birthday comes.','Doğum günüm geldiğinde, gelecek ay vermek için bana hediye getirecek. (PLANLI)',''],
+['e','She will sleep to rest on the bed while listening to music.','Müzik dinlerken yatakta dinlenmek için uyuyacak. (PLANSIZ)','']
+],
+ex:[
+{t:'mc',q:'Planlı eylemler için hangisi kullanılır?',o:['will','be going to','do/does','have/has'],a:1,w:'be going to → planlı, kanıtı olan eylemler için.'},
+{t:'mc',q:'“I won’t come.” hangisinin kısaltmasıdır?',o:['I want come','I will not come','I was not come','I am not come'],a:1,w:'will not → won’t.'},
+{t:'fill',q:'___ I going to go to the party? (Planlı soru)',a:'Am',w:'be going to yapısında soru için yardımcı fiil (am/is/are) başa gelir.'},
+{t:'tr',q:'Müzik dinlerken yatakta dinlenmek için uyuyacak. (plansız)',a:'She will sleep to rest on the bed while listening to music.',w:'Plansız → will; “dinlenmek için” → to rest; “yatakta” → on the bed; “dinlerken” → while listening.'},
+{t:'tr',q:'Doğum günüm geldiğinde, gelecek ay vermek için bana hediye getirecek. (planlı)',a:'She is going to bring a gift for me to give next month when my birthday comes.',w:'Planlı → be going to; “vermek için” → to give; “geldiğinde” → when … comes.'}
+]
+},
+{
+id:'past', s:'s3', title:'Past Tense (Geçmiş Zaman)', tag:'Zaman',
+sum:'Did yardımcı fiili, düzenli ve düzensiz fiiller.',
+blocks:[
+['p','Bu zamanı, Present Simple Tense mantığıyla çözümlerseniz mantığını çok rahat oturtabilirsiniz. Ancak bazı ezberler yapmanız gerekecek.'],
+['h','1. Ana fiilleri tanımak'],
+['p','Past Tense’i öğrenmeden önce ana fiillerimizi iki kategoriye ayırmalıyız: <b>Düzensiz (Irregular)</b> ve <b>Düzenli (Regular)</b> fiiller.'],
+['r','Tavsiyem: Sadece <b>düzensiz</b> fiilleri ezberleyin; İngilizcede ortalama 100–150 düzensiz fiil vardır, düzenli fiillerin sayısı ise binlerceyi bulur. Düzenli fiilleri ezberlemeden <b>“-ed”</b> takısı ile çekimleyebilirsiniz.'],
+['h','2. Yardımcı fiil: Did'],
+['p','Do/Does yardımcı fiillerinin geçmiş zamanı <b>Did</b>’dir. Did, ana fiilin içine girerek onu geçmiş zamanda çeker ve <b>“-dı/-di”</b> anlamını katar.'],
+['e','I went home.','Eve gittim.','Go (düzensiz) → Did go → went.'],
+['e','I listened to music.','Müzik dinledim.','Listen (düzenli) → Did listen → listened.'],
+['h','3. Olumsuz'],
+['e','I didn’t go to work.','İşe gitmedim.','Did yardımcı fiilini dışarı çıkarır ve “not” ekini bağlarız; ana fiil yalın hâline döner.'],
+['e','I didn’t listen to music.','Müzik dinlemedim.',''],
+['h','4. Soru'],
+['e','Did you go to work?','İşe gittin mi?','Did başa gelir, fiil yalın hâlde kalır.'],
+['e','Did you listen to music?','Müzik dinledin mi?',''],
+['h','5. Zaman zarfları'],
+['dl',[['Last','geçen (last year / month / week)'],['Yesterday','dün'],['Ago','önce (five minutes ago → 5 dakika önce)']]],
+['r','“Ago”yu <b>before</b> ile karıştırmayın; before “den önce” demektir.'],
+['p','Düzensiz fiillerin anlam ve çekimi farklıdır. Her fiil için aynı mantık geçerli olmayabilir, fakat yaklaşık %70 oranında yukarıdaki mantığa göre kullanılır.']
+],
+ex:[
+{t:'mc',q:'Kitaba göre hangilerini ezberlemeliyiz?',o:['Düzenli fiilleri','Düzensiz fiilleri','İkisini de','Hiçbirini'],a:1,w:'Düzensiz fiiller 100-150 tanedir; düzenli fiiller “-ed” ile çekimlenir.'},
+{t:'mc',q:'Hangisi doğrudur?',o:['I didn’t went to work.','I didn’t go to work.','I not go to work.','I didn’t goes to work.'],a:1,w:'Did dışarı çıktığında ana fiil yalın hâline döner.'},
+{t:'fill',q:'___ you listen to music? (soru)',a:'Did',w:'Geçmiş zamanda soru için Did başa gelir.'},
+{t:'fill',q:'I ___ to music yesterday. (listen — düzenli fiil)',a:'listened',w:'Düzenli fiiller “-ed” takısı alır.'},
+{t:'mc',q:'“Ago” ne demektir?',o:['den önce','önce (five minutes ago)','den sonra','dığında'],a:1,w:'Ago → önce. Before ile karıştırmayın; before “den önce” demektir.'},
+{t:'tr',q:'İşe gitmedim.',a:'I didn’t go to work.',w:'Olumsuzluk did’e eklenir, fiil yalın kalır.'}
+]
+},
+{
+id:'present-perfect', s:'s3', title:'Present Perfect Tense', tag:'EN ÖNEMLİ',
+sum:'have/has + V3 — “mış”lı geçmiş zaman.',
+blocks:[
+['r','Bu tense’i gerçekten iyi anlamanız gerekiyor, çünkü bu tense’in Türkçe birebir karşılığı yok. Bu tense’i öğrendiğinizde, geri kalan 6 tane perfect tense’i de Present Perfect mantığıyla öğrenebilirsiniz.'],
+['h','Temel mantık'],
+['dl',[['Past Simple','Eylemin ne zaman gerçekleştiğini belirtir.'],['Present Perfect','Eylemin geçmişte gerçekleştiğini söyler ama ne kadar önce veya ne kadar zamandır yapıldığını vurgular.']]],
+['p','Kısaca: Present Perfect, <b>yakın geçmiş</b> veya bir <b>süreci</b> vurgulayan zaman zarflarıyla kullanılır. Eğer zaman zarfınız varsa ve geçmişi vurgulamak istiyorsanız, her zaman Perfect tense’i kullanmalısınız.'],
+['f',['Özne','have/has','V3','…bir süre…']],
+['p','Have/Has yardımcı fiili her zaman fiilin <b>V3 (past participle)</b> hâliyle kullanılır. İngilizcede diğer perfect tense’lerde de hep <b>have + V3</b> yapısını kullanacağız.'],
+['h','Section 1 — Çok yakın zaman'],
+['p','Yapılan eylemin çok ama çok yakın zamanda gerçekleşmiş olmasıdır. Başlamış bir sürecin bitmemiş olması gerekiyor: gün, yıl, ay, hafta gibi zaman periyotlarının bitmemesi gerekir.'],
+['e','I have just finished my homework.','Daha şimdi ödevimi bitirmiştim.','Just – şimdi. “Just” kullandığımız yere dikkat edin, have ve fiil arasına yazılması gerekiyor.'],
+['e','I have already eaten my meat.','Çoktan etimi yemiştim.','Already – çoktan. Yakın zamanı vurguladığı için perfect yapı ile kullanılır.'],
+['e','I have gone to school this morning.','Okula bu sabah gitmiştim.','This – bu. Gün devam ediyor ve bitmediğinden dolayı “bu sabah” gibi zaman bölümlerinde perfect yapı kullanılır.'],
+['e','My brother hasn’t come to home yet.','Abim henüz eve gelmedi.','Yet – henüz. Çoğu zaman negatif bir yapı ile kullanılır.'],
+['h','Section 2 — Ne kadar süre: for / since'],
+['dl',[['For – den beri / dır-dir','Başlangıcı <b>belirsiz</b> olan zamanlar: for two years, for a long time, for five months'],['Since – den beri / dır-dir','Başlangıcı <b>belirli</b> olan zamanlar: since 2010, since April, since my childhood']]],
+['p','Since’den sonra cümle yapısı da kullanabiliriz, yani bir bağlaç olarak da kullanılır: “Since I was child” → Çocuk olduğumdan beri. Burada cümle past tense ile kullanılır.'],
+['e','I have worked here for two years.','Burada iki yıldır çalışmıştım.','Geçmişte başlamış ve hâlâ etkisi devam eden bir eylem; başlangıcı belirsiz olduğu için for.'],
+['e','I haven’t seen you since Saturday.','Seni cumartesiden beri görmemiştim.','Bir zaman periyodundan beri görmediğini söylediğimiz için perfect yapı.'],
+['h','Section 3 — Tecrübe: ever / never'],
+['dl',[['Ever – Hiç','Sorularda kullanılır, karşı tarafın tecrübesini öğrenmek için.'],['Never – Hiç','Olumsuz anlamda, tecrübeyi yaşamamış olduğumuzu belirtmek için.']]],
+['e','Have you ever eaten chocolate?','Çikolata yedin mi?',''],
+['e','Have you ever studied English before? — No, I have never studied English.','Daha önce İngilizce çalıştın mı? — Hayır, daha önce hiç İngilizce çalışmadım.','']
+],
+ex:[
+{t:'mc',q:'Present Perfect’in yapısı nedir?',o:['did + V1','have/has + V3','am/is/are + Ving','will + V1'],a:1,w:'Özne + have/has + V3 + …bir süre…'},
+{t:'mc',q:'Başlangıcı belirli olan zamanlarda hangisi kullanılır?',o:['for','since','just','yet'],a:1,w:'since 2010, since April, since my childhood — başlangıcı belli.'},
+{t:'fill',q:'I have worked here ___ two years.',a:'for',w:'İki yıl ifadesinin başlangıcı belirsiz olduğu için for.'},
+{t:'fill',q:'My brother hasn’t come to home ___. (henüz)',a:'yet',w:'Yet – henüz; çoğu zaman olumsuz yapılarla kullanılır.'},
+{t:'mc',q:'“Just” nereye yazılır?',o:['Cümlenin başına','have ve fiil arasına','Cümlenin sonuna','Öznenin önüne'],a:1,w:'I have just finished my homework — just, have ile fiil arasındadır.'},
+{t:'tr',q:'Çoktan etimi yemiştim.',a:'I have already eaten my meat.',w:'Already yakın zamanı vurgular; have + V3 (eaten).'},
+{t:'tr',q:'Seni cumartesiden beri görmemiştim.',a:'I haven’t seen you since Saturday.',w:'Başlangıcı belirli → since; olumsuzluk have’e eklenir.'},
+{t:'tr',q:'Daha önce hiç İngilizce çalışmadım.',a:'I have never studied English before.',w:'Never → tecrübeyi yaşamadığımızı belirtir.'}
+]
+},
+/* ============ S4 ============ */
+{
+id:'modals', s:'s4', title:'Modals', tag:'Modal',
+sum:'can, may, might, must, should — duygusal ekler.',
+blocks:[
+['r','Modals konusuna bir <b>zaman</b> olarak yaklaşmamak sizi en doğru mantığı anlamaya götürecektir. Modalları zamandan ziyade <b>duygusal</b> olarak düşünerek kullanmamız gerekiyor.'],
+['p','Türkçede kullandığımız “-ebilir / -ma / -me” ekleri farklı anlamlar taşıyabilir. Örneğin “-ebilir” olasılık, rica veya yetenek anlamına göre değişir:'],
+['e','I can go to Europe.','Avrupaya gidebilirim.','Olasılık anlamında kullanılıyor.'],
+['e','I can play football.','Futbol oynayabilirim.','Yetenek anlamında kullanılıyor.'],
+['e','Can I order?','Sipariş verebilir miyim?','Rica anlamında kullanılıyor.'],
+['p','Aynı şekilde “-malı / -meli” ekleri Türkçede tavsiye, zorunluluk veya tahmin anlamı verebilir: “Hastaneye gitmeli”, “Ahmet hastanede olmalı”, “Buraya gelmelisin”. Türkçe gramer açısından bu anlamlar aynı kullanılırken, İngilizcede hangi anlamla söyleyeceksek ona göre farklı modal kullanmamız gerekir.'],
+['h','“-ebilir”: can / may / might'],
+['dl',[['Can','%100 yapabilme. I can climb on the mountain → Dağa tırmanabilirim. Tahmin olarak yüksek olasılık: He can be here because the time has come. Rica: Can I order? (samimi olduğumuz kişilere)'],['May','%50 ihtimal ve yapabilite. I may come → Sana gelebilirim. Soru kalıplarında sadece “I” öznesiyle ricalı: May I go out?'],['Might','%25 yapabilite. I might swim today → Bugün yüzebilirim (büyük ihtimal yüzmeyecek).']]],
+['h','“-malı / -meli”: must / should'],
+['dl',[['Must','Kendi zorunluluğumuz: I must do my homework. Tahmin (be ile): Ahmet must be at home → Ahmet evde olmalı. Olumsuz yasak: You mustn’t smoke here.'],['Should','Tavsiye: You should go to the doctor because you are sick.']]],
+['r','Bu modallar zamanlarla kullanılmıyor, yani bir çekimleri yok. Fakat semi-modals zamanlarla çekilir.']
+],
+ex:[
+{t:'mc',q:'%25 yapabilite anlamı veren modal hangisidir?',o:['can','may','might','must'],a:2,w:'Might %25 yapabilite anlamı verir; büyük ihtimal yapılmayacaktır.'},
+{t:'mc',q:'“You mustn’t smoke here.” hangi anlamı taşır?',o:['Tavsiye','Yasak','Rica','İhtimal'],a:1,w:'Must’ın olumsuzu yasak anlamıyla kullanılır.'},
+{t:'mc',q:'Tavsiye vermek için hangisi kullanılır?',o:['must','should','may','can'],a:1,w:'Should tavsiye anlamıyla kullanılır.'},
+{t:'mc',q:'“Ahmet must be at home.” ne anlama gelir?',o:['Ahmet eve gitmeli','Ahmet evde olmalı (tahmin)','Ahmet evde olabilir','Ahmet evde değil'],a:1,w:'Must “be” takısı aldığında tahmin anlamı verir.'},
+{t:'tr',q:'Dışarı çıkabilir miyim? (ricalı)',a:'May I go out?',w:'May soru kalıplarında, “I” öznesiyle kendi ihtiyacını ricalı bir şekilde ifade eder.'},
+{t:'tr',q:'Hasta olduğun için doktora gitmelisin.',a:'You should go to the doctor because you are sick.',w:'Tavsiye → should; “dığı için” → because.'}
+]
+},
+{
+id:'semi-modals', s:'s4', title:'Semi-Modals', tag:'Modal',
+sum:'be able to, be supposed to, have to — zamanlarla çekilir.',
+blocks:[
+['p','Şimdi en çok kullanacağımız modallara gelelim, çünkü bunlar zamanlarla çekimleniyor.'],
+['h','be able to — “-ebilir”'],
+['p','can-may-might’ın <b>be able to</b> olarak çekimlendiğini göreceksiniz ve “be” olduğundan dolayı bunu istediğimiz zaman çekebiliriz.'],
+['dl',[['was/were able to','ebilirdi'],['will be able to','ebilecek'],['is able to','ebilir']]],
+['p','Ancak tek sefer yapabiliteden bahsettiğini bilmeliyim. Tek sefer yapabilite verip diğer tenslerde kullanabiliriz:'],
+['e','I am able to climb on the mountain.','Dağa tırmanabilirim.',''],
+['e','I was able to climb on the mountain.','Dağa tırmanabilirdim.',''],
+['e','I will be able to climb on the mountain.','Dağa tırmanacaktım.',''],
+['h','to be able to — “ebilmek için”'],
+['e','I am coming to be able to see you.','Seni görebilmek için geliyorum.','Parçalayalım: “mek için” → to, “ebil” → be able to, “gör” → see.'],
+['e','I hope you to be able to understand me.','Beni anlayabilmeni umuyorum.','“ma-me” → to, “ebil” → be able to, “anla” → understand.'],
+['r','Kısacası “to — mak için” kullanacağınız her yere <b>to be able to — ebilmek için</b> ekini kullanabilirsiniz. Hem uzun hem güzel durur cümlende.'],
+['h','be supposed to — “malı-meli” (should)'],
+['p','Should’u nerede kullanıyorsan be supposed to da kullanabilirsin. Farkı: should bir zaman alamıyor; fakat be supposed to’nun “be” hali olduğu için will — was — were — is — are gibi çekimler yapabilirsin.'],
+['e','You are supposed to come to home.','Eve gelmelisin.',''],
+['e','You were supposed to come to home.','Eve gelmeliydin.',''],
+['e','You will be supposed to come to home.','Eve gelecek olmalısın.',''],
+['h','have to — “malı-meli” (must)'],
+['e','You have to come to home.','Eve gelmelisin.',''],
+['e','You had to come to home.','Eve gelmeliydin.',''],
+['e','You will have to come to home.','Eve gelmek zorunda olacaksın.','']
+],
+ex:[
+{t:'mc',q:'can / may / might’ın semi-modal karşılığı nedir?',o:['have to','be able to','be supposed to','used to'],a:1,w:'“-ebilir” anlamı be able to olarak çekimlenir.'},
+{t:'mc',q:'Should’un semi-modal karşılığı nedir?',o:['have to','be able to','be supposed to','must'],a:2,w:'Should — be supposed to “malı-meli” olarak kodlanabilir.'},
+{t:'fill',q:'Eve gelmeliydin. → You ___ to come to home. (have to ile)',a:'had',w:'have to geçmişte had to olur.'},
+{t:'tr',q:'Seni görebilmek için geliyorum.',a:'I am coming to be able to see you.',w:'“mek için” → to, “ebil” → be able to, “gör” → see.'},
+{t:'tr',q:'Dağa tırmanabilirdim.',a:'I was able to climb on the mountain.',w:'was/were able to → ebilirdi.'},
+{t:'tr',q:'Eve gelmelisin. (be supposed to ile)',a:'You are supposed to come to home.',w:'be supposed to “malı-meli” anlamı verir ve zamanlarla çekilir.'}
+]
+},
+{
+id:'modals-perfect', s:'s4', title:'Modals Perfect', tag:'Modal',
+sum:'might/must/should + have + V3 — “mış” çekimleri.',
+blocks:[
+['p','Burada kullanacağımız ekler “ebilir — can/may/might” ve “malı-meli — must/should” eklerinin <b>“mışlı”</b> çekimleri olacaktır.'],
+['r','“Mış” dediğimiz her şey İngilizcede <b>have/has V3</b> demektir.'],
+['h','“mış olabilir” → might/may have V3'],
+['e','He might have come to home.','Eve gelmiş olabilir.',''],
+['e','Ayşe may have slept.','Ayşe uyumuş olabilir.',''],
+['h','“mış olmalıydı” → should have V3'],
+['p','Buradaki anlam <b>pişmanlık</b> olarak karşı tarafa duygusal olarak verilir.'],
+['e','Ahmet should have come to home.','Ahmet eve gelmiş olmalıydı.',''],
+['e','You should have studied.','Ders çalışmış olmalıydın.',''],
+['h','“mış olmalı” → must have V3'],
+['p','Bu kullanım geçmişte olmuş bir olayın ihtimalinden bahseder ama <b>yüksek</b> bir ihtimaldir.'],
+['e','Ahmet must have come to home.','Ahmet eve gelmiş olmalı.',''],
+['e','Ahmet must have studied.','Ahmet ders çalışmış olmalı.',''],
+['r','Bildiğimiz must’ın <b>zorundalık</b> anlamı perfectle birleştiğinde yok olur ve ihtimal olayları devreye girer.']
+],
+ex:[
+{t:'mc',q:'“mış” İngilizcede neye karşılık gelir?',o:['was/were','have/has V3','will be','be + ing'],a:1,w:'“Mış” dediğimiz her şey İngilizcede have/has V3 demektir.'},
+{t:'mc',q:'“Ders çalışmış olmalıydın.” hangi yapı ile kurulur?',o:['must have V3','should have V3','might have V3','will have V3'],a:1,w:'should have V3 — pişmanlık anlamı verir.'},
+{t:'mc',q:'Must perfect ile birleşince ne olur?',o:['Zorundalık anlamı güçlenir','Zorundalık kaybolur, yüksek ihtimal anlamı gelir','Yasak anlamı gelir','Tavsiye anlamı gelir'],a:1,w:'Must’ın zorundalık anlamı perfectle birleştiğinde yok olur ve ihtimal devreye girer.'},
+{t:'tr',q:'Eve gelmiş olabilir.',a:'He might have come to home.',w:'“olabilir” → might, “mış” → have V3 (come).'},
+{t:'tr',q:'Ahmet eve gelmiş olmalı.',a:'Ahmet must have come to home.',w:'Yüksek ihtimal → must have V3.'}
+]
+},
+{
+id:'future-perfect', s:'s4', title:'Future Perfect', tag:'Zaman',
+sum:'will have V3 ve by / until / for / since / in.',
+blocks:[
+['r','İçinde perfect yazan her tensi <b>“mış”</b> olarak çevireceğiz; bu temel mantığı öğrenmiş olalım.'],
+['p','Burada “acak-ecek” ekini <b>sadece will</b> olarak kullanacağız, çünkü gelecekte bir şey yapılmış olacağı için planlı değildir. Ama her perfect tenste olduğu gibi zaman zarfları olması gerekiyor: <b>by - until - for - since - in</b> gibi zaman zarflarını kullanacağız, çünkü kısıtlı bir zaman içinde gelecekte bir şey yapılmış olacak anlamı vereceğiz.'],
+['h','by / until'],
+['p','“by-until” ikisi de “e kadar” anlamına gelen zaman zarfıdır: “by tomorrow — yarına kadar”. By’dan sonra sadece zaman koymanız gerekiyor; “until tomorrow” da diyebilirsiniz. Kısacası until ile by aynı anlamda ve aynı kullanıma sahiptir, kendisinden sonra bir zaman alabilir.'],
+['r','Until’in bir diğer kullanımı kendisinden sonra <b>cümle</b> gelebilmesidir, yani bağlaç görevi görebilir: “until you come” — sen gelene kadar.'],
+['p','“for-since” anlatıldığı gibi “dır-dir veya lığına-liğine” anlamlarıyla gelecek.']
+],
+ex:[
+{t:'mc',q:'Future Perfect’te “acak-ecek” için hangisi kullanılır?',o:['be going to','sadece will','do/does','have to'],a:1,w:'Gelecekte bir şey yapılmış olacağı için planlı değildir; sadece will kullanılır.'},
+{t:'mc',q:'“by tomorrow” ne demektir?',o:['yarın','yarına kadar','yarından beri','yarından sonra'],a:1,w:'by / until → e kadar.'},
+{t:'mc',q:'Until’in by’dan farkı nedir?',o:['Farkı yoktur','Until’den sonra cümle de gelebilir (bağlaç görevi)','Until sadece geçmişte kullanılır','Until isim almaz'],a:1,w:'“until you come” — sen gelene kadar; until bağlaç görevi görebilir.'}
+]
+},
+{
+id:'if-clause', s:'s4', title:'If Clause', tag:'Koşul',
+sum:'Type 1, 2, 3 — “eğer-sa-se” koşul cümleleri.',
+blocks:[
+['p','If clause konusu Türkçemizdeki koşul konusuyla aynıdır ve Türkçe çevirisi <b>“eğer-sa-se”</b> olarak çevireceğiz; karşılığı sadece <b>“if”</b>tir. If clause’da 3 tane type vardır ve bunlar 1’den 3’e gidene kadar bir geçmiş zaman olarak ilerler: type 1 → v1, type 2 → v2, type 3 → v3 olarak kodlarsanız hangi zamanda kullanıldıklarını unutmazsınız.'],
+['r','HİÇBİR BAĞLAÇ <b>modals-will</b> ekleriyle aynı anda kullanılmaz. Örneğin “when-while-because-although ve if” bunların içinde sadece v1-v2 veya v3 olmak zorundadır. Bunların dışında 2. cümleyi kurarken modals-will gibi ekleri kullanabiliriz.'],
+['h','Type 1 — Gelecekte veya ihtimal'],
+['f',['if + özne + v1',',','özne + will/can/may/might + fiil']],
+['e','If I go to the library, I can study.','Eğer kütüphaneye gidersem, ders çalışabilirim.','“if I go” — gidersem (“sa-se” if), “to the library” — kütüphaneye, “I can study” — ders çalışabilirim (“ebilirim”).'],
+['h','Type 2 — Olmamış olaylar'],
+['f',['if + özne + v2',',','özne + would/could + fiil']],
+['e','If I studied lesson, I would pass the exam.','Eğer ders çalışsaydım, sınavı geçebilirdim.','Type 1’de v1 olan fiili type 2’de v2 olarak çekimlendiriyoruz; can-will modallarının 2. halleri would/could olur.'],
+['p','Type 2’nin bir kullanımı da “birinin yerinde olsaydın” gibi soru sorma yapılarıdır: <b>if I were you</b> — senin yerinde olsaydım; <b>if you were me</b> — benim yerimde olsaydın.'],
+['h','Type 3 — Hiç gerçekleşmemiş olaylar'],
+['f',['if + özne + had v3',',','özne + would/could have v3']],
+['e','If I had seen Hadise at the street, I would have taken photo with her.','Eğer dışarıda Hadise’yi görmüş olsaydım, onunla fotoğraf çektirmiş olabilirdim.','Type 3’ün en önemli Türkçesi “mış”lı çeviridir. Type 2’de v2 koyuyorduk; v2’nin en geçmişi past perfect olur, yani had v3.'],
+['h','Olumsuz yapılar'],
+['e','If I don’t study, I won’t pass the exam.','Ders çalışmazsam, sınavı geçemem.',''],
+['e','If I didn’t study, I wouldn’t pass the exam.','Ders çalışmasaydım, sınavı geçemezdim.',''],
+['e','If I hadn’t studied, I wouldn’t have passed the exam.','Ders çalışmış olmasaydım, sınavı geçmiş olamazdım.',''],
+['h','Unless = if not'],
+['p','“unless — if not” demektir ve kendisinden sonra <b>olumlu</b> bir cümle ister. Bunun sebebi kendisi zaten olumsuz olduğu içindir. İngilizcede iki tane olumsuzluk yan yana olamaz.'],
+['e','Unless I study, I won’t pass the exam.','Ders çalışmazsam, sınavı geçemem.',''],
+['e','Unless I had studied, I wouldn’t have passed the exam.','Ders çalışmış olmasaydım, sınavı geçmiş olamazdım.',''],
+['h','Soru yapıları — “What if”'],
+['p','Anlamı “ya olsaydı” şeklindedir ve genelde olmamış olaylar üzerinden soru sorarken kullanılır.'],
+['e','What if you were a superhero?','Ya süper kahraman olsaydın?',''],
+['e','What if you had a lot of money?','Ya çok paran olsaydı?',''],
+['e','What if you were a superhero, what would you do?','Ya süper kahraman olsaydın, ne yapardın?','Tamamlayıcıları soru şeklinde yazmak zorundayız.']
+],
+ex:[
+{t:'mc',q:'Type 2’nin yapısı nedir?',o:['if + v1, will','if + v2, would/could','if + had v3, would have v3','if + v3, will have'],a:1,w:'Type 2: if – özne – v2, özne – would/could – fiil.'},
+{t:'mc',q:'Bağlaçların (if, when, because…) içinde ne kullanılamaz?',o:['v1','v2','modals / will','v3'],a:2,w:'Hiçbir bağlaç modals-will ekleriyle aynı anda kullanılmaz.'},
+{t:'mc',q:'“Unless” kendisinden sonra nasıl bir cümle ister?',o:['Olumsuz','Olumlu','Soru','İsim'],a:1,w:'Unless = if not; kendisi olumsuz olduğu için cümle olumlu yazılır. İki olumsuzluk yan yana olamaz.'},
+{t:'fill',q:'If I ___ you, I would study. (senin yerinde olsaydım)',a:'were',w:'if I were you — senin yerinde olsaydım.'},
+{t:'tr',q:'Eğer kütüphaneye gidersem, ders çalışabilirim.',a:'If I go to the library, I can study.',w:'Type 1: if + v1, ardından modal + fiil.'},
+{t:'tr',q:'Ders çalışmış olmasaydım, sınavı geçmiş olamazdım.',a:'If I hadn’t studied, I wouldn’t have passed the exam.',w:'Type 3: if + had v3, would have v3.'},
+{t:'tr',q:'Ya çok paran olsaydı?',a:'What if you had a lot of money?',w:'What if + type 2 yapısı.'}
+]
+},
+/* ============ S5 ============ */
+{
+id:'passive', s:'s5', title:'Passive — Tenslerle', tag:'Passive',
+sum:'“-ıl / -il” eki = be + V3, bütün zamanlarda.',
+blocks:[
+['p','Bu konu İngilizcenin en önemli konularından birisidir ve şu anki seviyenizi birden üst seviyeye çıkaracak bir öneme sahiptir.'],
+['p','Ben size “çok pasifsin, hiçbir şey yapmıyorsun, sadece yatıyor ve televizyon izliyorsun” desem ne anlardınız? Muhtemelen: hiç aktif değilim, eylemim yok ve hareketsiz duruyorum. Biz her zaman aktif özneler kullanıyorduk; fakat passive (edilgen) konuda öznelerimiz <b>cansız nesneler</b> olmalıdır, çünkü onlar hareket edemez, bir eylem yapamazlar.'],
+['dl',[['Pencil is red',''],['Pencil is expensive',''],['Pencil is on the table','']]],
+['p','Ortak noktaları nedir? “Is” yani “to be” ekidir. Çünkü “pencil” bir eşya ve bu eşyanın bir eylem yapamayacağını biliyoruz. “Go, buy” gibi eylemler kalem tarafından yapılamaz.'],
+['r','Temel mantık: Passive cümlelerde <b>“be”</b> fiilini kullanmamız gerekiyor. Yanlış: “pencil is buy”. Doğru: <b>“the pencil is bought”</b> — kalem satın alınır.'],
+['r','Passive yapının Türkçesi %80 oranında her zaman <b>“-ıl / -il”</b> ekiyle çevrilir. “-ıl/-il” eki gördüğümüz yerde <b>be + V3</b> kuralını uygulamak zorundayız.'],
+['p','Bu passive konusu iki şekilde karşımıza çıkacak: 1) Ana fiil (yüklem) kısmındaki tüm tense çekimlerine göre değişimi, 2) Ana fiil dışında gelen, edatlarla bağlanmış eklerle olan birleşimi.'],
+['h','Tense tablosu — “Cam …”'],
+['tbl',['Türkçe','Yapı','İngilizce'],[
+['Cam kırılır','am/is/are + V3','The window is broken'],
+['Cam kırıldı','was/were + V3','The window was broken'],
+['Cam kırılacak','will be + V3 / be going to be + V3','The window will be broken'],
+['Cam kırılacaktı','was/were going to be + V3','The window was going to be broken'],
+['Cam kırılmıştı','have/has been + V3','The window has been broken'],
+['Cam kırılabilir','can/may/might be + V3','The window can be broken'],
+['Cam kırılmalı','must/should be + V3','The window must be broken'],
+['Cam kırılıyor','am/is/are being + V3','The window is being broken'],
+['Cam kırılıyordu','was/were being + V3','The window was being broken'],
+['Cam kırılmış olabilir','can/may/might have been + V3','The window might have been broken'],
+['Cam kırılmış olmalı','must/should have been + V3','The window must have been broken'],
+['Cam kırılmış olacak','will have been + V3','The window will have been broken']
+]],
+['h','Mantığı nasıl kuruyoruz?'],
+['p','Her satırda iki ek birleşiyor: zaman eki ve “-ıl” eki. Örneğin “kırılır”: “ar-er” eki geniş zaman olduğunu ve fiilin v1 haliyle yazılması gerektiğini söyler; “-ıl” takısı ise be v3 koymamız gerektiğini söyler. O zaman “be”nin v1 halini yazıyoruz → am/is/are + V3.'],
+['p','“Kırılmıştı”: “mıştı” eki perfect olduğunu ve have/has v3 gerektiğini söyler; “-ıl” takısı be v3 der. O zaman “be”nin v3 halini yazıyoruz → have/has <b>been</b> V3.'],
+['p','“Kırılıyor”: “yor” eki be + ing gerektirir; “-ıl” be v3 der → am/is/are <b>being</b> V3.'],
+['r','Bu konuyu okuyarak anlamak biraz zor olabilir; videoya girip çevirileri nasıl yapmışım, nelere dikkat etmişim, sesli olarak dinlerseniz daha iyi oturacaktır.']
+],
+ex:[
+{t:'mc',q:'“-ıl / -il” eki gördüğümüzde hangi kuralı uygularız?',o:['be + V3','have + V1','do + V2','will + V1'],a:0,w:'Passive yapının Türkçesi %80 oranında “-ıl/-il” ekiyle çevrilir ve be + V3 kuralı uygulanır.'},
+{t:'mc',q:'“Cam kırıldı” nasıl çevrilir?',o:['The window is broken','The window was broken','The window has been broken','The window will be broken'],a:1,w:'“Dı-di” eki v2 ister; be’nin v2 hali was/were → was broken.'},
+{t:'mc',q:'“Cam kırılıyor” nasıl çevrilir?',o:['The window is broken','The window is being broken','The window has been broken','The window was broken'],a:1,w:'“Yor” eki be + ing ister → is being + V3.'},
+{t:'mc',q:'“Cam kırılmıştı” nasıl çevrilir?',o:['The window was broken','The window has been broken','The window is being broken','The window will be broken'],a:1,w:'“Mıştı” perfect → have/has been + V3.'},
+{t:'fill',q:'The window will ___ broken. (Cam kırılacak)',a:'be',w:'“Acak” eki will ister; “-ıl” be v3 der → will be broken.'},
+{t:'tr',q:'Cam kırılmış olmalı.',a:'The window must have been broken.',w:'“mış olmalı” → must have; “-ıl” → been + V3.'},
+{t:'tr',q:'Cam kırılmış olacak.',a:'The window will have been broken.',w:'Future perfect + passive → will have been V3.'},
+{t:'tr',q:'Cam kırılabilir.',a:'The window can be broken.',w:'“abilir” → can/may/might; “-ıl” → be + V3.'}
+]
+},
+{
+id:'passive-edat', s:'s5', title:'Edatların Passive Halleri', tag:'Passive',
+sum:'to be V3, by being V3 — eklerin edilgen hali.',
+blocks:[
+['p','Ana fiilin passive çekimlerinden çıkıp, size bu zamana kadar öğrettiğim “to – mak için”, “by – arak/erek”, “while – ken” vb. eklerin passive hallerini göreceğiz. En çok göreceğiniz passive edat “to – mak için / ma – me” anlamıyla kullandığımız ektir.'],
+['h','Neden “to + fiil” kullanıyorduk?'],
+['e','I drive a car to go to job.','İşe gitmek için araba sürerim.','Why? – Neden sürüyorum? → To go to job. “Go – gitme” eylemini yapan kişi hâlâ benim, yani aktif canlı bir özne. Bu yüzden to + fiil olarak ilerlemek zorundayız.'],
+['h','Özne cansız olunca'],
+['e','The car is driven.','Araba sürülür.','Yanlış: The car drives — araba aktif olarak “drive” eylemini yapamaz. Eylemi yapamayan öznelere be v3 koyarız.'],
+['e','The car is driven to be gone to job.','İşe gidilmek için araba sürülür.','“Why – niçin sürülür?” diye sorduğumuzda: özne cansız, passive eki “-ıl/-il” ile gelir, “to – mak için” → be v3.'],
+['r','Mantık: <b>“-ılmak için” ekini to be v3 olarak kodlayabiliriz.</b>'],
+['h','“-arak / -erek” → by being V3'],
+['p','“-arak/-erek” ekini by olarak veriyoruz ve kendisinden sonra ing takısı koyarak fiili isimleştiriyoruz. By ekinden sonra gelen “-ul/-ül” eki ise be v3 olur.'],
+['e','By being beaten.','Dövülerek.','Beat → v3 hali beaten. Bu mantıkla her şeyi passive hâle getirebiliriz.']
+],
+ex:[
+{t:'mc',q:'“-ılmak için” nasıl kodlanır?',o:['to + fiil','to be + V3','by + ing','be + ing'],a:1,w:'“-ılmak için” ekini to be v3 olarak kodlayabiliriz.'},
+{t:'mc',q:'“Dövülerek” nasıl çevrilir?',o:['by beating','by being beaten','to be beaten','being beat'],a:1,w:'“-arak/-erek” → by + ing; “-ül” → be v3 → by being beaten.'},
+{t:'mc',q:'“The car drives” neden yanlıştır?',o:['drive düzensiz fiildir','Araba aktif olarak eylemi yapamaz','car çoğul olmalı','“the” fazla'],a:1,w:'Eylemi yapamayan öznelere be v3 koyarız: The car is driven.'},
+{t:'tr',q:'İşe gidilmek için araba sürülür.',a:'The car is driven to be gone to job.',w:'“sürülür” → is driven; “gidilmek için” → to be gone.'}
+]
+},
+{
+id:'passive-relative', s:'s5', title:'Passive Relative Clause', tag:'Passive',
+sum:'“-ılan” eki: which/who + be + V3.',
+blocks:[
+['p','Geldik çok sevdiğim bir eke: <b>“-ılan”</b> eki. Türkçede sıkça kullandığımız bir ek ve iki konuya bağlı olarak ortaya çıkıyor:'],
+['l',['“an-en” konusu → which / who / that (relative clause)','“-ıl” konusu → be-v3 (passive)']],
+['r','Bu iki yapı birleşince <b>“-ılan”</b> eki ortaya çıkıyor: which is v3 · which was v3 · who was v3 · who is v3'],
+['p','Bu yapıyı kurabilmemiz için bir isme ihtiyacımız vardı ve bu ismin detayına an-en (which/who) yapısıyla iniyorduk. Eğer bu isimleri passive olarak betimlemek istersek, ekstra olarak be v3 (yani -ıl/-il) ekini koymamız gerekir.'],
+['e','The window which was broken','Kırılan cam','Cam → the window, kırılan (an → which), -ıl → was, kır → broken.'],
+['e','The home which was seen','Görülen ev','Ev → home, en → which, -ıl → was, gör → seen.'],
+['e','The child who is loved by his family','Ailesi tarafından sevilen çocuk','Çocuk → the kid, sevilen → en → who → -ıl → is → sev → loved, tarafından → by, ailesi → his family.'],
+['p','Bu şekilde bir sürü örnek yapılabilir. Ödev kısmında videoda daha detaylı anlatıyor ve çeviriyor olacağım.']
+],
+ex:[
+{t:'mc',q:'“-ılan” eki hangi iki konunun birleşimidir?',o:['to + ing','an-en (relative) + -ıl (passive)','if + modal','have + V3'],a:1,w:'“an-en” → which/who/that ve “-ıl” → be v3 birleşince “-ılan” oluşur.'},
+{t:'tr',q:'Kırılan cam',a:'The window which was broken',w:'cam → the window, “an” → which, “-ıl” → was, kır → broken.'},
+{t:'tr',q:'Görülen ev',a:'The home which was seen',w:'“en” → which, “-ıl” → was, gör → seen.'},
+{t:'tr',q:'Ailesi tarafından sevilen çocuk',a:'The child who is loved by his family',w:'İnsan → who, “-ıl” → is, sev → loved, tarafından → by.'}
+]
+},
+{
+id:'kapanis', s:'s5', title:'Kapanış', tag:'Son',
+sum:'Kitabın kapanış sözleri.',
+blocks:[
+['p','Sonuç olarak, size göstermiş olduğum ekler ve yapıların, en zor cümleleri kurup çevirebilmeniz için yeterli olduğunu görebilirsiniz. Tabii ki, yazılı olarak bu konuları anlatmak, detaylı bir şekilde sözlü olarak anlatmaktan daha zordur; fakat ödev videolarını izleyerek, konunun mantığını ve inceliklerini anlamış olmanızı umuyorum.'],
+['p','Eğer İngilizceye veya başka Avrupa dillerine bu şekilde bakmayı öğrendiyseniz ve bakış açınızı değiştirdiyseniz, geleneksel eğitimde gördüğünüzden çok daha etkili bir öğrenme yöntemi kazanmış olursunuz.'],
+['p','Daha detaylı konu anlatımı ve yazılı olarak aktaramadığım birçok “ek mantığı” konusuna erişmek için konu anlatımı paketlerimden yararlanabilirsiniz.'],
+['p','Eğer bu kitabı faydalı bulduysanız ve başkalarına önermek isterseniz, bana Instagram hesabımdan yorum bırakabilirsiniz. Hepinize kitabımı okuduğunuz ve zaman ayırdığınız için teşekkür eder, eğitim hayatınızda başarılar dilerim.'],
+['r','Unutmayın: <b>Doğru kaynak ve doğru yöntem, öğrenmenin en hızlı yoludur.</b>']
+], ex:[]
+}
+];
+</script>
+<script>
+/* ---------- durum ---------- */
+const KEY='ekmantigi.v2';
+const defState={read:{},video:{},ex:{},last:null,theme:'system'};
+let S=load();
+function load(){try{const r=localStorage.getItem(KEY);return r?Object.assign({},defState,JSON.parse(r)):Object.assign({},defState);}catch(e){return Object.assign({},defState);}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function applyTheme(){try{if(S.theme==='system')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',S.theme);}catch(e){}}
+applyTheme();
+
+const byId=id=>TOPICS.find(t=>t.id===id);
+const secTopics=s=>TOPICS.filter(t=>t.s===s);
+const exCount=t=>t.ex.length;
+const exState=id=>S.ex[id]||{correct:0,total:0,done:0};
+const topicDone=t=>!!S.read[t.id]&&(exCount(t)===0||exState(t.id).done>=exCount(t));
+const topicStarted=t=>!!S.read[t.id]||!!S.video[t.id]||exState(t.id).done>0;
+
+/* ---------- ikonlar ---------- */
+const I={
+home:'<path d="M3 10.2 12 3l9 7.2V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+list:'<path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/>',
+pen:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+chart:'<path d="M3 20h18"/><rect x="5" y="11" width="3.4" height="6" rx="1"/><rect x="10.3" y="7" width="3.4" height="10" rx="1"/><rect x="15.6" y="13" width="3.4" height="4" rx="1"/>',
+back:'<path d="M15 19l-7-7 7-7"/>',
+search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.2-3.2"/>',
+play:'<circle cx="12" cy="12" r="9"/><path d="M10 8.6 16 12l-6 3.4z"/>',
+check:'<path d="M4 12.5 9 17.5 20 6.5"/>',
+sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+moon:'<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/>',
+auto:'<circle cx="12" cy="12" r="9"/><path d="M12 3v18" /><path d="M12 3a9 9 0 0 1 0 18"/>',
+flame:'<path d="M12 3s5 4.2 5 8.6A5 5 0 0 1 7 12c0-1.4.5-2.6 1.3-3.6.3 1.3 1.2 2.1 2.2 2.1 0-2.6 1.5-5.6 1.5-7.5z"/>'
+};
+const svg=(p,c='')=>'<svg class="'+c+'" viewBox="0 0 24 24" aria-hidden="true">'+p+'</svg>';
+
+/* ---------- yönlendirme ---------- */
+const VIEWS=['home','topics','practice','progress'];
+function route(){const h=(location.hash||'#home').slice(1);return h;}
+function go(h){if(location.hash==='#'+h)render();else location.hash='#'+h;}
+window.addEventListener('hashchange',()=>{window.scrollTo(0,0);render();});
+
+/* ---------- blok çizimi ---------- */
+function block(b){
+  const k=b[0];
+  if(k==='p')return '<p>'+b[1]+'</p>';
+  if(k==='h')return '<h4>'+b[1]+'</h4>';
+  if(k==='r')return '<div class="rule">'+b[1]+'</div>';
+  if(k==='l')return '<ul>'+b[1].map(x=>'<li>'+x+'</li>').join('')+'</ul>';
+  if(k==='e')return '<div class="ex"><span class="en">'+b[1]+'</span><span class="tr">'+b[2]+'</span>'+(b[3]?'<span class="nt">'+b[3]+'</span>':'')+'</div>';
+  if(k==='dl')return '<dl class="kv">'+b[1].map(r=>'<dt>'+r[0]+'</dt><dd>'+r[1]+'</dd>').join('')+'</dl>';
+  if(k==='f')return '<div class="formula">'+b[1].map((x,i)=>x===','?'<b>,</b>':'<span'+(i%2?' class="k"':'')+'>'+x+'</span>').join('<b>+</b>')+'</div>';
+  if(k==='tbl')return '<div class="tablewrap"><table><thead><tr>'+b[1].map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+b[2].map(r=>'<tr>'+r.map((c,i)=>'<td>'+(i===2?'<b>'+c+'</b>':c)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
+  return '';
+}
+
+/* ---------- üst bar ---------- */
+function topbar(title,sub,back){
+  const t=document.getElementById('topbar');
+  const themeIcon=S.theme==='dark'?I.moon:(S.theme==='light'?I.sun:I.auto);
+  t.innerHTML=(back?'<button class="iconbtn" id="backbtn" aria-label="Geri">'+svg(I.back)+'</button>':'')
+    +'<div style="flex:1;min-width:0">'+(sub?'<span class="tb-sub">'+sub+'</span>':'')+'<div class="tb-title">'+title+'</div></div>'
+    +'<button class="iconbtn" id="themebtn" aria-label="Tema değiştir">'+svg(themeIcon)+'</button>';
+  const b=document.getElementById('backbtn');
+  if(b)b.onclick=()=>{if(history.length>1)history.back();else go('topics');};
+  document.getElementById('themebtn').onclick=()=>{
+    S.theme=S.theme==='system'?'dark':(S.theme==='dark'?'light':'system');save();applyTheme();render();
+  };
+}
+
+/* ---------- alt sekmeler ---------- */
+function tabbar(active){
+  const items=[['home','Ana Sayfa',I.home],['topics','Konular',I.list],['practice','Alıştırma',I.pen],['progress','İlerleme',I.chart]];
+  document.getElementById('tabbar').innerHTML=items.map(([id,label,ic])=>
+    '<a class="tab" href="#'+id+'"'+(active===id?' aria-current="page"':'')+'>'+svg(ic)+'<span>'+label+'</span></a>').join('');
+}
+
+/* ---------- ilerleme hesapları ---------- */
+function overall(){
+  const total=TOPICS.length;let done=0;TOPICS.forEach(t=>{if(topicDone(t))done++;});
+  return {done,total,pct:total?Math.round(done/total*100):0};
+}
+function exTotals(){
+  let c=0,n=0,q=0;TOPICS.forEach(t=>{const e=exState(t.id);c+=e.correct;n+=e.total;q+=exCount(t);});
+  return {correct:c,answered:n,all:q};
+}
+function sectionPct(sid){
+  const ts=secTopics(sid);if(!ts.length)return 0;
+  let d=0;ts.forEach(t=>{if(topicDone(t))d++;});return Math.round(d/ts.length*100);
+}
+function nextTopic(){
+  if(S.last){const i=TOPICS.findIndex(t=>t.id===S.last);if(i>-1&&!topicDone(TOPICS[i]))return TOPICS[i];}
+  return TOPICS.find(t=>!topicDone(t))||TOPICS[0];
+}
+
+/* ---------- ekran: ana sayfa ---------- */
+function viewHome(){
+  const o=overall(),e=exTotals(),nx=nextTopic();
+  const acc=e.answered?Math.round(e.correct/e.answered*100):0;
+  const R=2*Math.PI*28;
+  return '<div class="stack">'
+  +'<div class="hero"><h1>Ek Mantığı</h1><span class="sub">Kitabın 36 konusu, her konunun sonunda alıştırmasıyla.</span></div>'
+  +'<div class="card" style="display:flex;flex-direction:column;gap:13px">'
+    +'<div class="ring"><svg viewBox="0 0 66 66"><circle class="track" cx="33" cy="33" r="28"/><circle class="val" cx="33" cy="33" r="28" stroke-dasharray="'+R+'" stroke-dashoffset="'+(R*(1-o.pct/100))+'"/></svg>'
+    +'<div><div class="ringnum">%'+o.pct+'</div><div class="small muted">'+o.done+' / '+o.total+' konu tamamlandı</div></div></div>'
+    +'<div class="formula"><span>Özne</span><b>+</b><span class="k">fiil</span><b>+</b><span class="k">ek</span><b>+</b><span>isim</span></div>'
+  +'</div>'
+  +'<div class="card" style="display:flex;flex-direction:column;gap:11px">'
+    +'<span class="eyebrow">Kaldığın yer</span>'
+    +'<div><div style="font-family:var(--font-d);font-weight:600;font-size:17px">'+nx.title+'</div><div class="small muted">'+nx.sum+'</div></div>'
+    +'<button class="btn" onclick="location.hash=\'#t-'+nx.id+'\'">Konuya git</button>'
+  +'</div>'
+  +'<div class="stats">'
+    +'<div class="stat"><div class="n">'+Object.keys(S.video).filter(k=>S.video[k]).length+'</div><div class="l">izlenen video</div></div>'
+    +'<div class="stat"><div class="n">'+e.answered+'</div><div class="l">çözülen alıştırma</div></div>'
+    +'<div class="stat"><div class="n">%'+acc+'</div><div class="l">doğru oranı</div></div>'
+    +'<div class="stat"><div class="n">'+e.all+'</div><div class="l">toplam alıştırma</div></div>'
+  +'</div>'
+  +'<div><div class="sechead"><h3>Bölümler</h3></div>'
+    +SECTIONS.map(s=>{const p=sectionPct(s.id);return '<a class="toprow" href="#topics" style="margin-bottom:9px" onclick="FILTER=\''+s.id+'\'">'
+      +'<div class="tnum">'+p+'</div><div class="tmain"><div class="tname">'+s.name+'</div><div class="tmeta">'+s.desc+'</div>'
+      +'<div class="bar" style="margin-top:7px"><i style="width:'+p+'%"></i></div></div></a>';}).join('')
+  +'</div>'
+  +'<button class="btn soft" onclick="location.hash=\'#practice\'">'+svg(I.pen)+' Karışık alıştırma yap</button>'
+  +'<p class="fine">Her konuyu okuduktan sonra o konunun videosunu izle, sonra alıştırmaları çöz.</p>'
+  +'</div>';
+}
+
+/* ---------- ekran: konular ---------- */
+let FILTER='all',QUERY='';
+function viewTopics(){
+  const q=QUERY.trim().toLocaleLowerCase('tr');
+  const chips='<div style="display:flex;gap:7px;overflow-x:auto;padding-bottom:3px;margin:0 -2px;padding-left:2px;padding-right:2px">'
+    +['all'].concat(SECTIONS.map(s=>s.id)).map(id=>{
+      const name=id==='all'?'Tümü':SECTIONS.find(s=>s.id===id).name;
+      return '<button class="chip'+(FILTER===id?' on':'')+'" style="white-space:nowrap" onclick="FILTER=\''+id+'\';render()">'+name+'</button>';}).join('')
+    +'</div>';
+  let list='';
+  const groups=FILTER==='all'?SECTIONS:SECTIONS.filter(s=>s.id===FILTER);
+  let found=0;
+  groups.forEach(s=>{
+    const ts=secTopics(s.id).filter(t=>!q||(t.title+' '+t.sum+' '+t.tag).toLocaleLowerCase('tr').includes(q));
+    if(!ts.length)return;found+=ts.length;
+    list+='<div class="sechead"><h3>'+s.name+'</h3><span class="ct">'+ts.length+' konu</span></div>';
+    list+=ts.map(t=>row(t)).join('');
+  });
+  if(!found)list='<div class="empty">“'+QUERY+'” için konu bulunamadı.</div>';
+  return '<div class="stack">'
+    +'<div class="search">'+svg(I.search)+'<input id="q" type="search" placeholder="Konu ara: passive, bağlaç, if…" value="'+QUERY.replace(/"/g,'&quot;')+'"></div>'
+    +chips+'<div class="stack" style="gap:9px">'+list+'</div></div>';
+}
+function row(t){
+  const i=TOPICS.indexOf(t)+1,e=exState(t.id),n=exCount(t);
+  const cls=topicDone(t)?' done':(topicStarted(t)?' started':'');
+  return '<a class="toprow'+cls+'" href="#t-'+t.id+'">'
+    +'<div class="tnum">'+(topicDone(t)?'✓':i)+'</div>'
+    +'<div class="tmain"><div class="tname">'+t.title+'</div>'
+    +'<div class="tmeta"><span>'+t.tag+'</span>'+(n?'<span>'+e.done+'/'+n+' alıştırma</span>':'<span>alıştırmasız</span>')+(S.video[t.id]?'<span>video ✓</span>':'')+'</div></div></a>';
+}
+
+/* ---------- ekran: konu ---------- */
+let TAB='konu';
+function viewTopic(t){
+  const n=exCount(t),e=exState(t.id);
+  const seg='<div class="seg" role="tablist">'
+    +'<button role="tab" aria-selected="'+(TAB==='konu')+'" onclick="TAB=\'konu\';render()">Konu</button>'
+    +'<button role="tab" aria-selected="'+(TAB==='alistirma')+'" onclick="TAB=\'alistirma\';render()">Alıştırma'+(n?' ('+n+')':'')+'</button></div>';
+  if(TAB==='alistirma')return '<div class="stack">'+seg+(n?quizShell(t.ex,t.id):'<div class="empty">Bu bölümde alıştırma yok — okuyup devam edebilirsin.</div>')+'</div>';
+  const idx=TOPICS.indexOf(t),prev=TOPICS[idx-1],next=TOPICS[idx+1];
+  return '<div class="stack">'+seg
+    +'<div class="prose">'+t.blocks.map(block).join('')+'</div>'
+    +'<div class="videocard">'
+      +'<div class="vt">'+svg(I.play)+' Ödev videosu</div>'
+      +'<p>Bu konuyu okudun. Şimdi “'+t.title+'” başlıklı ödev videosunu izle; yazıyla anlatılamayan detaylar orada. Sonra alıştırmalara geç.</p>'
+      +'<button class="vbtn'+(S.video[t.id]?' on':'')+'" onclick="toggleVideo(\''+t.id+'\')">'+svg(I.check)+(S.video[t.id]?' Videoyu izledim':' Videoyu izledim olarak işaretle')+'</button>'
+    +'</div>'
+    +'<button class="btn'+(S.read[t.id]?' ghost':'')+'" onclick="toggleRead(\''+t.id+'\')">'+(S.read[t.id]?'Okundu olarak işaretlendi ✓':'Okudum')+'</button>'
+    +(n?'<button class="btn soft" onclick="TAB=\'alistirma\';render()">'+n+' alıştırmaya geç ('+e.done+' çözüldü)</button>':'')
+    +'<div style="display:flex;gap:9px">'
+      +(prev?'<a class="btn ghost" style="flex:1;text-decoration:none" href="#t-'+prev.id+'">← Önceki</a>':'')
+      +(next?'<a class="btn ghost" style="flex:1;text-decoration:none" href="#t-'+next.id+'">Sonraki →</a>':'')
+    +'</div></div>';
+}
+function toggleVideo(id){S.video[id]=!S.video[id];S.last=id;save();render();}
+function toggleRead(id){S.read[id]=!S.read[id];S.last=id;save();render();}
+
+/* ---------- alıştırma motoru ---------- */
+let Q={key:null,list:[],i:0,answered:false,ok:null,correct:0,src:null};
+function quizShell(list,srcId){
+  if(Q.key!==srcId){Q={key:srcId,list:list.slice(),i:0,answered:false,ok:null,correct:0,src:srcId};}
+  if(Q.i>=Q.list.length)return quizEnd();
+  const q=Q.list[Q.i];
+  const dots='<div class="qprog">'+Q.list.map((_,i)=>'<i class="'+(i<Q.i?'on':'')+'"></i>').join('')+'</div>';
+  let body='';
+  const label=q.t==='mc'?'Çoktan seçmeli':(q.t==='fill'?'Boşluğu doldur':'Çeviri');
+  if(q.t==='mc'){
+    body='<div class="qtext">'+q.q+'</div><div class="opts">'+q.o.map((o,i)=>{
+      let c='';
+      if(Q.answered){if(i===q.a)c=' right';else if(i===Q.pick)c=' wrong';}
+      return '<button class="opt'+c+'"'+(Q.answered?' disabled':'')+' onclick="answerMC('+i+')"><span class="ltr">'+'ABCD'[i]+'</span><span>'+o+'</span></button>';
+    }).join('')+'</div>';
+  } else if(q.t==='fill'){
+    body='<div class="qtext">'+q.q.replace('___','<span class="blank">&nbsp;</span>')+'</div>'
+      +'<div class="answerbox"><input id="ans" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Cevabını yaz…" '+(Q.answered?'disabled value="'+(Q.typed||'').replace(/"/g,'&quot;')+'"':'')+' onkeydown="if(event.key===\'Enter\')answerFill()">'
+      +(Q.answered?'':'<button class="btn" onclick="answerFill()">Kontrol et</button>')+'</div>';
+  } else {
+    body='<div class="qtext">'+q.q+'</div>'
+      +(Q.answered?'':'<div class="answerbox"><input id="ans" type="text" autocomplete="off" placeholder="İngilizcesini yaz (isteğe bağlı)…" onkeydown="if(event.key===\'Enter\')revealTr()"><button class="btn" onclick="revealTr()">Cevabı göster</button></div>');
+  }
+  let fb='';
+  if(Q.answered){
+    if(q.t==='tr'){
+      fb='<div class="fb neutral"><span class="key">'+q.a+'</span>'+(Q.typed?'<span class="why">Senin cevabın: '+esc(Q.typed)+'</span>':'')+'<span class="why">'+q.w+'</span></div>'
+        +(Q.ok===null?'<div class="selfcheck"><button class="btn soft" onclick="selfGrade(true)">Bildim</button><button class="btn ghost" onclick="selfGrade(false)">Bilemedim</button></div>':'<button class="btn" onclick="nextQ()">'+(Q.i+1<Q.list.length?'Sonraki soru':'Bitir')+'</button>');
+    }else{
+      fb='<div class="fb '+(Q.ok?'good':'bad')+'">'+(Q.ok?'Doğru!':'Doğru cevap: '+(q.t==='mc'?q.o[q.a]:q.a))+'<span class="why">'+q.w+'</span></div>'
+        +'<button class="btn" onclick="nextQ()">'+(Q.i+1<Q.list.length?'Sonraki soru':'Bitir')+'</button>';
+    }
+  }
+  return '<div class="qcard">'+dots+'<span class="qtype">'+label+' · '+(Q.i+1)+'/'+Q.list.length+'</span>'+body+fb+'</div>';
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function norm(s){return String(s||'').toLocaleLowerCase('tr').replace(/[’'`]/g,"'").replace(/[.,!?]/g,'').replace(/\s+/g,' ').trim();}
+function answerMC(i){const q=Q.list[Q.i];Q.pick=i;Q.answered=true;Q.ok=(i===q.a);if(Q.ok)Q.correct++;render();}
+function answerFill(){
+  const el=document.getElementById('ans');const v=el?el.value:'';Q.typed=v;const q=Q.list[Q.i];
+  const accept=[q.a].concat(q.alt||[]).map(norm);
+  Q.answered=true;Q.ok=accept.includes(norm(v));if(Q.ok)Q.correct++;render();
+}
+function revealTr(){const el=document.getElementById('ans');Q.typed=el?el.value:'';Q.answered=true;Q.ok=null;render();}
+function selfGrade(ok){Q.ok=ok;if(ok)Q.correct++;render();}
+function nextQ(){Q.i++;Q.answered=false;Q.ok=null;Q.pick=null;Q.typed='';render();window.scrollTo({top:0,behavior:'smooth'});}
+function quizEnd(){
+  const n=Q.list.length,c=Q.correct,pct=n?Math.round(c/n*100):0;
+  if(Q.src&&Q.src!=='mix'){
+    const prev=exState(Q.src);
+    if(n>=prev.done){S.ex[Q.src]={done:n,correct:c,total:n};S.last=Q.src;save();}
+  }
+  const msg=pct>=80?'Bu konu oturmuş. Videoyu da izlediysen bir sonrakine geçebilirsin.':(pct>=50?'Fena değil. Konuyu bir kez daha oku, sonra tekrar dene.':'Konuya geri dön ve mantığı tekrar oku; sonra alıştırmaları tekrarla.');
+  return '<div class="qcard" style="text-align:center;align-items:center">'
+    +'<span class="qtype">Oturum bitti</span>'
+    +'<div class="ringnum" style="font-size:40px">%'+pct+'</div>'
+    +'<div class="small muted">'+n+' soruda '+c+' doğru</div>'
+    +'<p class="small" style="color:var(--muted)">'+msg+'</p>'
+    +'<button class="btn" style="margin-top:4px" onclick="restartQuiz()">Tekrar dene</button>'
+    +(Q.src!=='mix'?'<button class="btn ghost" onclick="TAB=\'konu\';render()">Konuya dön</button>':'<button class="btn ghost" onclick="MIXSEC=\'all\';Q.key=null;render()">Yeni karışık set</button>')
+    +'</div>';
+}
+function restartQuiz(){const k=Q.key;Q.key=null;if(k==='mix')buildMix();render();}
+
+/* ---------- karışık alıştırma ---------- */
+let MIXSEC='all';
+function buildMix(){
+  let pool=[];
+  TOPICS.filter(t=>MIXSEC==='all'||t.s===MIXSEC).forEach(t=>t.ex.forEach(q=>pool.push(Object.assign({},q,{_t:t.title}))));
+  for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+  MIX=pool.slice(0,12);
+}
+let MIX=null;
+function viewPractice(){
+  if(!MIX)buildMix();
+  const chips='<div style="display:flex;gap:7px;overflow-x:auto;padding:0 2px 3px">'
+    +['all'].concat(SECTIONS.map(s=>s.id)).map(id=>{
+      const name=id==='all'?'Tüm kitap':SECTIONS.find(s=>s.id===id).name;
+      return '<button class="chip'+(MIXSEC===id?' on':'')+'" style="white-space:nowrap" onclick="MIXSEC=\''+id+'\';buildMix();Q.key=null;render()">'+name+'</button>';}).join('')+'</div>';
+  const head='<div class="hero"><h1>Karışık alıştırma</h1><span class="sub">Seçtiğin bölümden 12 rastgele soru.</span></div>';
+  if(!MIX.length)return '<div class="stack">'+head+chips+'<div class="empty">Bu bölümde alıştırma yok.</div></div>';
+  const cur=(Q.key==='mix'&&Q.i<Q.list.length)?Q.list[Q.i]:null;
+  return '<div class="stack">'+head+chips
+    +(cur&&cur._t?'<div class="chip" style="align-self:flex-start">Konu: '+cur._t+'</div>':'')
+    +quizShell(MIX,'mix')+'</div>';
+}
+
+/* ---------- ekran: ilerleme ---------- */
+function viewProgress(){
+  const o=overall(),e=exTotals();
+  const acc=e.answered?Math.round(e.correct/e.answered*100):0;
+  const vids=Object.keys(S.video).filter(k=>S.video[k]).length;
+  return '<div class="stack">'
+  +'<div class="hero"><h1>İlerleme</h1><span class="sub">Bir konu; okundu, videosu izlendi ve alıştırmaları bitti ise tamamlanmış sayılır.</span></div>'
+  +'<div class="stats">'
+    +'<div class="stat"><div class="n">'+o.done+'/'+o.total+'</div><div class="l">tamamlanan konu</div></div>'
+    +'<div class="stat"><div class="n">'+vids+'/'+TOPICS.length+'</div><div class="l">izlenen video</div></div>'
+    +'<div class="stat"><div class="n">'+e.answered+'/'+e.all+'</div><div class="l">çözülen alıştırma</div></div>'
+    +'<div class="stat"><div class="n">%'+acc+'</div><div class="l">doğru oranı</div></div>'
+  +'</div>'
+  +SECTIONS.map(s=>{
+    const ts=secTopics(s.id),p=sectionPct(s.id);
+    return '<div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">'
+      +'<div style="font-family:var(--font-d);font-weight:600">'+s.name+'</div><div class="small muted">%'+p+'</div></div>'
+      +'<div class="bar" style="margin:9px 0 11px"><i style="width:'+p+'%"></i></div>'
+      +'<div style="display:flex;flex-direction:column;gap:6px">'+ts.map(t=>{
+        const ex=exState(t.id),n=exCount(t);
+        return '<a href="#t-'+t.id+'" style="display:flex;gap:9px;align-items:center;text-decoration:none;color:inherit;font-size:13.5px">'
+          +'<span style="width:9px;height:9px;border-radius:999px;flex:none;background:'+(topicDone(t)?'var(--ok)':(topicStarted(t)?'var(--accent)':'var(--line)'))+'"></span>'
+          +'<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+t.title+'</span>'
+          +'<span class="muted" style="font-size:12px;font-variant-numeric:tabular-nums">'+(n?ex.done+'/'+n:'—')+'</span></a>';
+      }).join('')+'</div></div>';
+  }).join('')
+  +'<button class="btn ghost" onclick="resetAll()">İlerlemeyi sıfırla</button>'
+  +'<p class="fine">İlerlemen yalnızca bu cihazın tarayıcısında saklanır.</p>'
+  +'</div>';
+}
+function resetAll(){
+  if(document.getElementById('confirmReset'))return;
+  const el=document.createElement('div');el.id='confirmReset';el.className='card';el.style.marginTop='10px';
+  el.innerHTML='<div class="small">Bütün okundu, video ve alıştırma kayıtların silinsin mi?</div>'
+    +'<div style="display:flex;gap:9px;margin-top:10px"><button class="btn" id="yes">Evet, sıfırla</button><button class="btn ghost" id="no">Vazgeç</button></div>';
+  document.getElementById('view').appendChild(el);
+  el.querySelector('#no').onclick=()=>el.remove();
+  el.querySelector('#yes').onclick=()=>{S=Object.assign({},defState,{theme:S.theme});save();Q.key=null;MIX=null;render();};
+}
+
+/* ---------- çizim ---------- */
+function render(){
+  const h=route(),v=document.getElementById('view');
+  if(h.startsWith('t-')){
+    const t=byId(h.slice(2));
+    if(t){S.last=t.id;save();topbar(t.title,t.tag,true);v.innerHTML=viewTopic(t);tabbar('topics');return;}
+  }
+  const page=VIEWS.includes(h)?h:'home';
+  if(page==='home'){topbar('Ek Mantığı','englishwithfurkn',false);v.innerHTML=viewHome();}
+  else if(page==='topics'){topbar('Konular',TOPICS.length+' başlık',false);v.innerHTML=viewTopics();
+    const q=document.getElementById('q');
+    if(q){q.oninput=()=>{QUERY=q.value;const s=q.selectionStart;render();const n=document.getElementById('q');if(n){n.focus();try{n.setSelectionRange(s,s);}catch(e){}}};}
+  }
+  else if(page==='practice'){topbar('Alıştırma','karışık set',false);v.innerHTML=viewPractice();}
+  else {topbar('İlerleme','',false);v.innerHTML=viewProgress();}
+  tabbar(page);
+}
+if(!location.hash)location.hash='#home';
+render();
+</script>
